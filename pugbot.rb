@@ -34,7 +34,11 @@ class Game
 	end
 
 	def update(m)
-		m.channel.topic = "[#{@players.length}/#{@max}]: #{@players.join(' ')}"
+		m.channel.topic = self.to_s
+	end
+
+	def to_s()
+		"[#{@players.length}/#{@max}]: #{@players.join(' ')}"
 	end
 end
 
@@ -51,6 +55,14 @@ bot = Cinch::Bot.new do
 
 	on :"332" do |m|
 		$game = Game.new(m.channel.topic)
+	end
+
+	on :message, /^!status$/ do |m|
+		if $game == {}
+			m.user.notice "No game currently active."
+		else
+			m.user.notice "Players: #{$game}."
+		end
 	end
 
 	on :message, /^!start\s?(\d+)?$/ do |m, num|
@@ -71,6 +83,7 @@ bot = Cinch::Bot.new do
 			$game.update(m)
 		end
 	end
+
 	on :message, /^!add$/ do |m|
 		if $game == {}
 			m.user.notice "No game currently active."
