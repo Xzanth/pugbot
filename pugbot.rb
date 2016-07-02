@@ -64,8 +64,12 @@ bot = Cinch::Bot.new do
 			next
 		else
 			$game.update(m)
-			m.user.notice "Please don't edit the topic if a game is in progress"
+			m.user.notice "Please don't edit the topic if a game is in progress."
 		end
+	end
+
+	on :message, /^!help$/ do |m|
+		m.user.notice "Supported commands are: !help, !status, !start, !add, !del. And for channel operators: !finish and !remove."
 	end
 
 	on :message, /^!status$/ do |m|
