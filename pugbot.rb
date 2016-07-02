@@ -57,6 +57,17 @@ bot = Cinch::Bot.new do
 		$game = Game.new(m.channel.topic)
 	end
 
+	on :topic do |m|
+		if m.user.nick == bot.nick
+			next
+		elsif $game == {}
+			next
+		else
+			$game.update(m)
+			m.user.notice "Please don't edit the topic if a game is in progress"
+		end
+	end
+
 	on :message, /^!status$/ do |m|
 		if $game == {}
 			m.user.notice "No game currently active."
