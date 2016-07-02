@@ -1,4 +1,5 @@
 require 'cinch'
+require 'yaml'
 
 class Game
 	def initialize(max=10)
@@ -35,10 +36,11 @@ $game = {}
 
 bot = Cinch::Bot.new do
 	configure do |c|
-		c.nick = ""
-		c.server = ""
-		c.channels = [""]
-		c.local_host = ""
+		config = YAML::load_file(File.join(__dir__, 'config.yml'))
+		c.nick = config['nick']
+		c.server = config['server']
+		c.channels = config['channels']
+		c.local_host = config['local_host']
 	end
 
 	on :message, /^!start\s?(\d+)?$/ do |m, num|
