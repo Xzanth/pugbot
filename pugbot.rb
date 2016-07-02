@@ -61,7 +61,7 @@ bot = Cinch::Bot.new do
 		if $game == {}
 			m.user.notice "No game currently active."
 		else
-			m.user.notice "Players: #{$game}."
+			m.user.notice "Players: #{$game}"
 		end
 	end
 
