@@ -7,9 +7,13 @@ class Game
 			@max = arg
 			@players = Array.new()
 		else
-			m = /\[\d+\/(?<max>\d+)\]: (?<players>.+)/.match(arg)
-			@max = m["max"].to_i
-			@players = m["players"].split(" ")
+			m = /\[\d+\/(?<max>\d+)\]: (?<players>.+)?/.match(arg)
+			@max = m['max'].to_i
+			if m['players'].nil?
+				@players = Array.new()
+			else
+				@players = m['players'].split(" ")
+			end
 		end
 	end
 
