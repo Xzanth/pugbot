@@ -97,7 +97,7 @@ bot = Cinch::Bot.new do
 	end
 
 	on :message, /^!help$/ do |m|
-		m.user.notice "Supported commands are: !help, !status, !start, !add, !del. And for channel operators: !finish and !remove."
+		m.user.notice "Supported commands are: !help, !status, !start, !add, !del, !subs. And for channel operators: !finish, !end and !remove."
 	end
 
 	on :message, /^!status$/ do |m|
