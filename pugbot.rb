@@ -47,6 +47,10 @@ class Game
 	def update(m)
 		m.channel.topic = self.to_s
 	end
+	def renew()
+		@players = @subs.take(@max)
+		@subs = @subs.drop(@max)
+	end
 
 	def list_subs()
 		"#{@subs.join(' ')}"
@@ -157,7 +161,7 @@ bot = Cinch::Bot.new do
 		end
 	end
 
-	on :message, /^!finish$/ do |m|
+	on :message, /^!end$/ do |m|
 		if not m.channel.opped?(m.user.nick)
 			m.user.notice "Access denied - must be a channel operator."
 		elsif $game == {}
@@ -166,6 +170,17 @@ bot = Cinch::Bot.new do
 			$game = {}
 			m.reply "Game ended by #{m.user.nick}."
 			m.channel.topic = ""
+		end
+	end
+
+	on :message, /^!finish$/ do |m|
+		if not m.channel.opped?(m.user.nick)
+			m.user.notice "Access denied - must be a channel operator."
+		elsif $game == {}
+			m.user.notice "No game currently active."
+		else
+			$game.renew
+			$game.update(m)
 		end
 	end
 
