@@ -12,8 +12,20 @@ class Game
 		@players.push(name)
 	end
 
+	def add_sub(name)
+		@subs.push(name)
+	end
+
 	def is_player(name)
 		@players.include?(name)
+	end
+
+	def is_sub(name)
+		@subs.include?(name)
+	end
+
+	def is_listed(name)
+		self.is_player(name) or self.is_sub(name)
 	end
 
 	def is_full()
@@ -25,7 +37,11 @@ class Game
 	end
 
 	def remove(name)
-		@players.delete(name)
+		if self.is_player(name)
+			@players.delete(name)
+		elsif self.is_sub(name)
+			@subs.delete(name)
+		end
 	end
 
 	def update(m)
@@ -33,7 +49,13 @@ class Game
 	end
 
 	def to_s()
-		"[#{@players.length}/#{@max}]: #{@players.join(' ')}"
+		if @players.empty?
+			return "[#{@players.length}/#{@max}]"
+		elsif @subs.empty?
+			return "[#{@players.length}/#{@max}]: #{@players.join(' ')}"
+		else
+			return "[#{@players.length}/#{@max}]: #{@players.join(' ')} - Subs: #{@subs.length}"
+		end
 	end
 end
 
@@ -93,10 +115,12 @@ bot = Cinch::Bot.new do
 	on :message, /^!add$/ do |m|
 		if $game == {}
 			m.user.notice "No game currently active."
-		elsif $game.is_full()
-			m.user.notice "This game is full, try again later!"
-		elsif $game.is_player(m.user.nick)
+		elsif $game.is_listed(m.user.nick)
 			m.user.notice "You've already signed up!"
+		elsif $game.is_full()
+			$game.add_sub(m.user.nick)
+			$game.update(m)
+			m.user.notice "This game is full, you have been added as a sub and will get priority next game."
 		else
 			$game.add(m.user.nick)
 			$game.update(m)
@@ -106,7 +130,7 @@ bot = Cinch::Bot.new do
 	on :message, /^!del$/ do |m|
 		if $game == {}
 			m.user.notice "No game currently active."
-		elsif not $game.is_player(m.user.nick)
+		elsif not $game.is_listed(m.user.nick)
 			m.user.notice "You haven't signed up!"
 		else
 			$game.remove(m.user.nick)
@@ -120,7 +144,7 @@ bot = Cinch::Bot.new do
 			m.user.notice "Access denied - must be a channel operator."
 		elsif $game == {}
 			m.user.notice "No game currently active."
-		elsif not $game.is_player(name)
+		elsif not $game.is_listed(name)
 			m.user.notice "#{name} hasn't signed up!."
 		else
 			$game.remove(name)
