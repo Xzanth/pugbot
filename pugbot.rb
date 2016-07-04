@@ -213,7 +213,7 @@ bot = Cinch::Bot.new do
 		elsif $game == {}
 			m.user.notice "Welcome to #{m.channel} - no games are currently active type !start to begin signups."
 		elsif $game.is_full()
-			m.user.notice "Welcome to #{m.channel} - the next game is currently full, wait for a new game to be started and use !add to sign up."
+			m.user.notice "Welcome to #{m.channel} - the next game is currently full, type !add to register as a sub and get in queue for the next game."
 		else
 			m.user.notice "Welcome to #{m.channel} - signups for the next game are currently in progress, just type !add to sign up."
 		end
