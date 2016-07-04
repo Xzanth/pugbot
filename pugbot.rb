@@ -3,18 +3,21 @@ require 'cinch/plugins/identify'
 require 'yaml'
 
 class Game
-	def initialize(arg=10)
+	def initialize(channel, arg=10)
 		@max = arg
 		@players = Array.new()
 		@subs = Array.new()
+		@channel = channel
 	end
 
 	def add(user)
 		@players.push(user)
+		user.monitor()
 	end
 
 	def add_sub(user)
 		@subs.push(user)
+		user.monitor()
 	end
 
 	def is_player(user)
@@ -42,12 +45,16 @@ class Game
 			@players.delete(user)
 		elsif self.is_sub(user)
 			@subs.delete(user)
+		else
+			return false
 		end
+		user.unmonitor()
+		return true
 	end
 
-	def update(m)
-		m.channel.topic = self.to_s
-		File.open('game.yml', 'w') {|f| f.write(YAML.dump(self)) }
+	def update()
+		@channel.topic = self.to_s
+		#File.open('game.yml', 'w') {|f| f.write(YAML.dump(self)) }
 	end
 
 	def renew()
@@ -66,6 +73,20 @@ class Game
 			return "[#{@players.length}/#{@max}]: #{@players.join(' ')}"
 		else
 			return "[#{@players.length}/#{@max}]: #{@players.join(' ')} - Subs: #{@subs.length}"
+		end
+	end
+end
+
+module Cinch
+	class User
+		def start_countdown(timer)
+			@countdown = timer
+		end
+
+		def stop_countdown()
+			if @countdown.is_a?(Cinch::Timer)
+				@countdown.stop()
+			end
 		end
 	end
 end
@@ -98,7 +119,7 @@ bot = Cinch::Bot.new do
 		elsif $game == {}
 			next
 		else
-			$game.update(m)
+			$game.update()
 			m.user.notice "Please don't edit the topic if a game is in progress."
 		end
 	end
@@ -120,8 +141,8 @@ bot = Cinch::Bot.new do
 		if $game != {}
 			m.user.notice "Game exists, please finish current game."
 		elsif num == 0
-			$game = Game.new()
-			$game.update(m)
+			$game = Game.new(m.channel)
+			$game.update()
 		elsif num.odd?
 			m.user.notice "Game must have an even number of players."
 		elsif num > 32
@@ -129,8 +150,8 @@ bot = Cinch::Bot.new do
 		# elsif num < 6
 		# 	m.user.notice "Games must have at least 6 players."
 		else
-			$game = Game.new(num)
-			$game.update(m)
+			$game = Game.new(m.channel, num)
+			$game.update()
 		end
 	end
 
@@ -141,11 +162,11 @@ bot = Cinch::Bot.new do
 			m.user.notice "You've already signed up!"
 		elsif $game.is_full()
 			$game.add_sub(m.user)
-			$game.update(m)
+			$game.update()
 			m.user.notice "This game is full, you have been added as a sub and will get priority next game."
 		else
 			$game.add(m.user)
-			$game.update(m)
+			$game.update()
 		end
 	end
 
@@ -157,7 +178,7 @@ bot = Cinch::Bot.new do
 		else
 			$game.remove(m.user)
 			m.reply "#{m.user.nick} has abandoned us!"
-			$game.update(m)
+			$game.update()
 		end
 	end
 
@@ -171,7 +192,7 @@ bot = Cinch::Bot.new do
 		else
 			$game.remove(User(name))
 			m.reply "#{name} has been removed by #{m.user.nick}."
-			$game.update(m)
+			$game.update()
 		end
 	end
 
@@ -194,7 +215,7 @@ bot = Cinch::Bot.new do
 			m.user.notice "No game currently active."
 		else
 			$game.renew
-			$game.update(m)
+			$game.update()
 		end
 	end
 
@@ -217,6 +238,14 @@ bot = Cinch::Bot.new do
 		else
 			m.user.notice "Welcome to #{m.channel} - signups for the next game are currently in progress, just type !add to sign up."
 		end
+	end
+
+	on :online do |m, user|
+		user.stop_countdown()
+	end
+
+	on :offline do |m, user|
+		user.start_countdown(Timer(120, {shots: 1}) { $game.remove(user) and $game.update()})
 	end
 end
 
