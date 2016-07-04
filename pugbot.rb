@@ -9,24 +9,24 @@ class Game
 		@subs = Array.new()
 	end
 
-	def add(name)
-		@players.push(name)
+	def add(user)
+		@players.push(user)
 	end
 
-	def add_sub(name)
-		@subs.push(name)
+	def add_sub(user)
+		@subs.push(user)
 	end
 
-	def is_player(name)
-		@players.include?(name)
+	def is_player(user)
+		@players.include?(user)
 	end
 
-	def is_sub(name)
-		@subs.include?(name)
+	def is_sub(user)
+		@subs.include?(user)
 	end
 
-	def is_listed(name)
-		self.is_player(name) or self.is_sub(name)
+	def is_listed(user)
+		self.is_player(user) or self.is_sub(user)
 	end
 
 	def is_full()
@@ -37,11 +37,11 @@ class Game
 		end
 	end
 
-	def remove(name)
-		if self.is_player(name)
-			@players.delete(name)
-		elsif self.is_sub(name)
-			@subs.delete(name)
+	def remove(user)
+		if self.is_player(user)
+			@players.delete(user)
+		elsif self.is_sub(user)
+			@subs.delete(user)
 		end
 	end
 
@@ -140,11 +140,11 @@ bot = Cinch::Bot.new do
 		elsif $game.is_listed(m.user.nick)
 			m.user.notice "You've already signed up!"
 		elsif $game.is_full()
-			$game.add_sub(m.user.nick)
+			$game.add_sub(m.user)
 			$game.update(m)
 			m.user.notice "This game is full, you have been added as a sub and will get priority next game."
 		else
-			$game.add(m.user.nick)
+			$game.add(m.user)
 			$game.update(m)
 		end
 	end
@@ -152,10 +152,10 @@ bot = Cinch::Bot.new do
 	on :channel, /^!del$/ do |m|
 		if $game == {}
 			m.user.notice "No game currently active."
-		elsif not $game.is_listed(m.user.nick)
+		elsif not $game.is_listed(m.user)
 			m.user.notice "You haven't signed up!"
 		else
-			$game.remove(m.user.nick)
+			$game.remove(m.user)
 			m.reply "#{m.user.nick} has abandoned us!"
 			$game.update(m)
 		end
@@ -166,10 +166,10 @@ bot = Cinch::Bot.new do
 			m.user.notice "Access denied - must be a channel operator."
 		elsif $game == {}
 			m.user.notice "No game currently active."
-		elsif not $game.is_listed(name)
+		elsif not $game.is_listed(User(name))
 			m.user.notice "#{name} hasn't signed up!."
 		else
-			$game.remove(name)
+			$game.remove(User(name))
 			m.reply "#{name} has been removed by #{m.user.nick}."
 			$game.update(m)
 		end
