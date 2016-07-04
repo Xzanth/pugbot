@@ -103,11 +103,11 @@ bot = Cinch::Bot.new do
 		end
 	end
 
-	on :message, /^!help$/ do |m|
+	on :channel, /^!help$/ do |m|
 		m.user.notice "Supported commands are: !help, !status, !start, !add, !del, !subs. And for channel operators: !finish, !end and !remove."
 	end
 
-	on :message, /^!status$/ do |m|
+	on :channel, /^!status$/ do |m|
 		if $game == {}
 			m.user.notice "No game currently active."
 		else
@@ -115,7 +115,7 @@ bot = Cinch::Bot.new do
 		end
 	end
 
-	on :message, /^!start\s?(\d+)?$/ do |m, num|
+	on :channel, /^!start\s?(\d+)?$/ do |m, num|
 		num = num.to_i
 		if $game != {}
 			m.user.notice "Game exists, please finish current game."
@@ -134,7 +134,7 @@ bot = Cinch::Bot.new do
 		end
 	end
 
-	on :message, /^!add$/ do |m|
+	on :channel, /^!add$/ do |m|
 		if $game == {}
 			m.user.notice "No game currently active."
 		elsif $game.is_listed(m.user.nick)
@@ -149,7 +149,7 @@ bot = Cinch::Bot.new do
 		end
 	end
 
-	on :message, /^!del$/ do |m|
+	on :channel, /^!del$/ do |m|
 		if $game == {}
 			m.user.notice "No game currently active."
 		elsif not $game.is_listed(m.user.nick)
@@ -161,7 +161,7 @@ bot = Cinch::Bot.new do
 		end
 	end
 
-	on :message, /^!remove (.+)$/ do |m, name|
+	on :channel, /^!remove (.+)$/ do |m, name|
 		if not m.channel.opped?(m.user.nick)
 			m.user.notice "Access denied - must be a channel operator."
 		elsif $game == {}
@@ -175,7 +175,7 @@ bot = Cinch::Bot.new do
 		end
 	end
 
-	on :message, /^!end$/ do |m|
+	on :channel, /^!end$/ do |m|
 		if not m.channel.opped?(m.user.nick)
 			m.user.notice "Access denied - must be a channel operator."
 		elsif $game == {}
@@ -187,7 +187,7 @@ bot = Cinch::Bot.new do
 		end
 	end
 
-	on :message, /^!finish$/ do |m|
+	on :channel, /^!finish$/ do |m|
 		if not m.channel.opped?(m.user.nick)
 			m.user.notice "Access denied - must be a channel operator."
 		elsif $game == {}
@@ -198,7 +198,7 @@ bot = Cinch::Bot.new do
 		end
 	end
 
-	on :message, /^!subs$/ do |m|
+	on :channel, /^!subs$/ do |m|
 		if $game == {}
 			m.user.notice "No game currently active."
 		else
