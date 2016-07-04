@@ -48,6 +48,10 @@ class Game
 		m.channel.topic = self.to_s
 	end
 
+	def list_subs()
+		"#{@subs.join(' ')}"
+	end
+
 	def to_s()
 		if @players.empty?
 			return "[#{@players.length}/#{@max}]"
@@ -104,8 +108,8 @@ bot = Cinch::Bot.new do
 			m.user.notice "Game must have an even number of players."
 		elsif num > 32
 			m.user.notice "Games must have 32 or less players."
-		elsif num < 6
-			m.user.notice "Games must have at least 6 players."
+		# elsif num < 6
+		# 	m.user.notice "Games must have at least 6 players."
 		else
 			$game = Game.new(num)
 			$game.update(m)
@@ -164,6 +168,15 @@ bot = Cinch::Bot.new do
 			m.channel.topic = ""
 		end
 	end
+
+	on :message, /^!subs$/ do |m|
+		if $game == {}
+			m.user.notice "No game currently active."
+		else
+			m.user.notice "Subs: #{$game.list_subs}"
+		end
+	end
+
 
 	on :join do |m|
 		if m.user.nick == bot.nick
