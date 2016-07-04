@@ -1,4 +1,5 @@
 require 'cinch'
+require 'cinch/plugins/identify'
 require 'yaml'
 
 class Game
@@ -72,6 +73,12 @@ $game = {}
 bot = Cinch::Bot.new do
 	configure do |c|
 		config = YAML::load_file(File.join(__dir__, 'config.yml'))
+		c.plugins.plugins = [Cinch::Plugins::Identify]
+		c.plugins.options[Cinch::Plugins::Identify] = {
+			:username => config['username'],
+			:password => config['password'],
+			:type     => config['auth'],
+		}
 		c.nick = config['nick']
 		c.server = config['server']
 		c.channels = config['channels']
