@@ -3,18 +3,9 @@ require 'yaml'
 
 class Game
 	def initialize(arg=10)
-		if arg.is_a?(Integer)
-			@max = arg
-			@players = Array.new()
-		else
-			m = /\[\d+\/(?<max>\d+)\]: (?<players>.+)?/.match(arg)
-			@max = m['max'].to_i
-			if m['players'].nil?
-				@players = Array.new()
-			else
-				@players = m['players'].split(" ")
-			end
-		end
+		@max = arg
+		@players = Array.new()
+		@subs = Array.new()
 	end
 
 	def add(name)
@@ -55,10 +46,6 @@ bot = Cinch::Bot.new do
 		c.server = config['server']
 		c.channels = config['channels']
 		c.local_host = config['local_host']
-	end
-
-	on :"332" do |m|
-		$game = Game.new(m.channel.topic)
 	end
 
 	on :topic do |m|
