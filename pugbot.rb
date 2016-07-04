@@ -47,7 +47,9 @@ class Game
 
 	def update(m)
 		m.channel.topic = self.to_s
+		File.open('game.yml', 'w') {|f| f.write(YAML.dump(self)) }
 	end
+
 	def renew()
 		@players = @subs.take(@max)
 		@subs = @subs.drop(@max)
@@ -68,7 +70,12 @@ class Game
 	end
 end
 
-$game = {}
+begin
+	$game = YAML.load(File.read('game.yml'))
+rescue Errno::ENOENT
+	$game = {}
+end
+
 
 bot = Cinch::Bot.new do
 	configure do |c|
