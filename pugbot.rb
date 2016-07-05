@@ -43,8 +43,11 @@ class Game
 	def remove(user)
 		if self.is_player(user)
 			@players.delete(user)
+			$game.update()
+			self.check_start()
 		elsif self.is_sub(user)
 			@subs.delete(user)
+			$game.update()
 		else
 			return false
 		end
@@ -59,11 +62,14 @@ class Game
 			@subs = @subs.drop(free)
 		end
 		@channel.topic = self.to_s
-		if free == 0
+		#File.open('game.yml', 'w') {|f| f.write(YAML.dump(self)) }
+	end
+
+	def check_start()
+		if (@max - @players.length) == 0
 			@players.each { |a| a.send("The game you signed up for is full, join teamspeak.") }
 			@channel.send("Game starting for: #{@players.join(' ')}")
 		end
-		#File.open('game.yml', 'w') {|f| f.write(YAML.dump(self)) }
 	end
 
 	def renew()
@@ -104,9 +110,8 @@ module Cinch
 		end
 
 		def countdown_end()
-			$game.remove(self)
-			$game.update()
 			$game.get_channel().send("#{self.nick} has not returned and has lost their space in the queue.")
+			$game.remove(self)
 			self.unmonitor()
 		end
 	end
@@ -188,6 +193,7 @@ bot = Cinch::Bot.new do
 		else
 			$game.add(m.user)
 			$game.update()
+			$game.check_start()
 		end
 	end
 
@@ -197,9 +203,8 @@ bot = Cinch::Bot.new do
 		elsif not $game.is_listed(m.user)
 			m.user.notice "You haven't signed up!"
 		else
-			$game.remove(m.user)
 			m.reply "#{m.user.nick} has abandoned us!"
-			$game.update()
+			$game.remove(m.user)
 		end
 	end
 
@@ -211,9 +216,8 @@ bot = Cinch::Bot.new do
 		elsif not $game.is_listed(User(name))
 			m.user.notice "#{name} hasn't signed up!."
 		else
-			$game.remove(User(name))
 			m.reply "#{name} has been removed by #{m.user.nick}."
-			$game.update()
+			$game.remove(User(name))
 		end
 	end
 
@@ -250,6 +254,10 @@ bot = Cinch::Bot.new do
 
 
 	on :join do |m|
+		if m.user.monitored?
+			m.user.stop_countdown()
+		end
+
 		if m.user.nick == bot.nick
 			next
 		elsif $game == {}
@@ -261,13 +269,11 @@ bot = Cinch::Bot.new do
 		end
 	end
 
-	on :online do |m, user|
-		user.stop_countdown()
-	end
-
-	on :offline do |m, user|
-		user.start_countdown(Timer(120, {shots: 1}) { user.countdown_end() })
-		$game.get_channel.send("#{user.nick} has disconnected and has 2 mins to return before losing their space.")
+	on :leaving do |m, user|
+		if m.user.monitored?
+			user.start_countdown(Timer(120, {shots: 1}) { user.countdown_end() })
+			$game.get_channel.send("#{user.nick} has disconnected and has 2 mins to return before losing their space.")
+		end
 	end
 end
 
