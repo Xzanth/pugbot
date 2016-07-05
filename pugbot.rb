@@ -59,10 +59,15 @@ class Game
 			@subs = @subs.drop(free)
 		end
 		@channel.topic = self.to_s
+		if free == 0
+			@players.each { |a| a.send("The game you signed up for is full, join teamspeak.") }
+			@channel.send("Game starting for: #{@players.join(' ')}")
+		end
 		#File.open('game.yml', 'w') {|f| f.write(YAML.dump(self)) }
 	end
 
 	def renew()
+		@players.each { |a| a.unmonitor() }
 		@players = @subs.take(@max)
 		@subs = @subs.drop(@max)
 	end
