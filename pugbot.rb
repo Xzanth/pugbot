@@ -53,6 +53,11 @@ class Game
 	end
 
 	def update()
+		free = @max - @players.length
+		if !@subs.empty? and free > 0
+			@subs.take(free).each { |a| @players.push(a) }
+			@subs = @subs.drop(free)
+		end
 		@channel.topic = self.to_s
 		#File.open('game.yml', 'w') {|f| f.write(YAML.dump(self)) }
 	end
