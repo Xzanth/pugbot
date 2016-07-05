@@ -71,6 +71,10 @@ class Game
 		"#{@subs.join(' ')}"
 	end
 
+	def get_channel()
+		@channel
+	end
+
 	def to_s()
 		if @players.empty?
 			return "[#{@players.length}/#{@max}]"
@@ -92,6 +96,13 @@ module Cinch
 			if @countdown.is_a?(Cinch::Timer)
 				@countdown.stop()
 			end
+		end
+
+		def countdown_end()
+			$game.remove(self)
+			$game.update()
+			$game.get_channel().send("#{self.nick} has not returned and has lost their space in the queue.")
+			self.unmonitor()
 		end
 	end
 end
@@ -250,7 +261,8 @@ bot = Cinch::Bot.new do
 	end
 
 	on :offline do |m, user|
-		user.start_countdown(Timer(120, {shots: 1}) { $game.remove(user) and $game.update()})
+		user.start_countdown(Timer(120, {shots: 1}) { user.countdown_end() })
+		$game.get_channel.send("#{user.nick} has disconnected and has 2 mins to return before losing their space.")
 	end
 end
 
