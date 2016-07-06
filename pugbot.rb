@@ -252,6 +252,11 @@ bot = Cinch::Bot.new do
 		end
 	end
 
+	on :private do |m|
+		if not m.user.nick == "Q"
+			m.reply "I am a bot, please direct all questions/comments to Xzanth"
+		end
+	end
 
 	on :join do |m|
 		if m.user.monitored?
