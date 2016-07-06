@@ -150,6 +150,8 @@ bot = Cinch::Bot.new do
 			:type     => $config['auth'],
 		}
 		c.nick = $config['nick']
+		c.realname = $config['realname']
+		c.user = $config['user']
 		c.server = $config['server']
 		c.channels = $config['channels']
 		c.local_host = $config['local_host']
