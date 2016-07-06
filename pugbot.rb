@@ -244,8 +244,8 @@ bot = Cinch::Bot.new do
 			m.user.notice "Game must have an even number of players."
 		elsif num > 32
 			m.user.notice "Games must have 32 or less players."
-		elsif num < 6
-			m.user.notice "Games must have at least 6 players."
+		#elsif num < 6
+		#	m.user.notice "Games must have at least 6 players."
 		else
 			game = Game.new(aname, num)
 			$games.push(game)
