@@ -67,7 +67,6 @@ class Game
 
 	def check_start()
 		if (@max - @players.length) == 0
-			@players.each { |a| a.send("The game you signed up for is full, join teamspeak.") }
 			@channel.send("Game starting for: #{@players.join(' ')}")
 		end
 	end
