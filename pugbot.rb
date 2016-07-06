@@ -104,10 +104,10 @@ class Game
 	end
 
 	def subs()
-		if @subs.empt?
+		if @subs.empty?
 			return "No subs in #{@name} yet."
 		else
-			return "#{@name} - Subs: #{@subs.join(' ')}."
+			return "Game: #{@name} - Subs: #{@subs.join(' ')}."
 		end
 	end
 end
@@ -365,12 +365,10 @@ bot = Cinch::Bot.new do
 
 		if m.user.nick == bot.nick
 			$channel = m.channel
-		elsif $game == {}
-			m.user.notice "Welcome to #{m.channel} - no games are currently active type !start to begin signups."
-		elsif $game.is_full()
-			m.user.notice "Welcome to #{m.channel} - the next game is currently full, type !add to register as a sub and get in queue for the next game."
+		elsif $games.empty?
+			m.user.notice "Welcome to #{m.channel} - no games are currently active type '!start name (numberofplayers)' to start a game"
 		else
-			m.user.notice "Welcome to #{m.channel} - signups for the next game are currently in progress, just type !add to sign up."
+			m.user.notice "Welcome to #{m.channel} - sign up for games by typing '!add nameofgame' and remove yourself from signups with '!del'"
 		end
 	end
 
