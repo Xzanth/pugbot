@@ -157,9 +157,9 @@ bot = Cinch::Bot.new do
 
 	on :channel, /^!status$/ do |m|
 		if $game == {}
-			m.reply "No game currently active."
+			m.user.notice "No game currently active."
 		else
-			m.reply "Players: #{$game}"
+			m.user.notice "Players: #{$game}"
 		end
 	end
 
@@ -249,7 +249,7 @@ bot = Cinch::Bot.new do
 		if $game == {}
 			m.user.notice "No game currently active."
 		else
-			m.reply "Subs: #{$game.list_subs}"
+			m.user.notice "Subs: #{$game.list_subs}"
 		end
 	end
 
