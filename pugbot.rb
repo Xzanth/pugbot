@@ -37,6 +37,10 @@ class GameList
 		end
 	end
 
+	def find_game_playing(user)
+		@games.select { |game| game.in_game.include?(user) }[0]
+	end
+
 	def find_game_by_index(i)
 		@games[i]
 	end
@@ -118,7 +122,6 @@ class Game
 
 	def sub(user, sub)
 		@ingame.delete(user)
-		@users.delete(sub)
 		@ingame.push(sub)
 	end
 
@@ -304,6 +307,14 @@ bot = Cinch::Bot.new do
 			end
 		end
 
+		def try_remove(admin, user, game)
+			if game.in_game?(user)
+				admin.notice "#{user.nick} is in a game please find a replacement and use !sub"
+			elsif game.listed?(user)
+				$channel.send "#{user.nick} has been remove from #{game.name()} by #{admin.nick}"
+				game.remove(user)
+			end
+		end
 	end
 
 	on :topic do |m|
@@ -374,18 +385,20 @@ bot = Cinch::Bot.new do
 		$gamelist.set_topic()
 	end
 
-	#on :channel, /^!remove (.+)$/ do |m, name|
-	#	if not m.channel.opped?(m.user.nick)
-	#		m.user.notice "Access denied - must be a channel operator."
-	#	elsif $game == {}
-	#		m.user.notice "No game currently active."
-	#	elsif not $game.is_listed(User(name))
-	#		m.user.notice "#{name} hasn't signed up!."
-	#	else
-	#		m.reply "#{name} has been removed by #{m.user.nick}."
-	#		$game.remove(User(name))
-	#	end
-	#end
+	on :channel, /^!remove (.+)\s?(\d+|\w+)?$/ do |m, name, arg|
+		if not m.channel.opped?(m.user.nick)
+			m.user.notice "Access denied - must be a channel operator."
+		elsif $gamelist.games().empty?
+			m.user.notice "No games currently active."
+		elsif arg.nil?
+			$gamelist.games().each { |game| try_remove(m.user, User(name), game) }
+		elsif $gamelist.find_game_by_arg(arg).nil?
+			m.user.notice "Game not found."
+		else
+			try_remove(m.user, User(name), $gamelist.find_game_by_arg(arg))
+		end
+		$gamelist.set_topic()
+	end
 
 	on :channel, /^!end\s?(\d+|\w+)?$/ do |m, arg|
 		if not m.channel.opped?(m.user.nick)
@@ -428,8 +441,22 @@ bot = Cinch::Bot.new do
 		end
 	end
 
-	#on :channel /^!sub (.+) (.+)$/ do |m, user, sub|
-	#	if 
+	on :channel, /^!sub (.+) (.+)$/ do |m, user, sub|
+		if User(user).nil? or User(sub).nil?
+			m.user.notice "Couldn't find one of the users you mentioned"
+		elsif $gamelist.find_game_playing(User(user)).nil?
+			m.user.notice "#{user} is not playing a game"
+		elsif not $gamelist.find_game_playing(User(sub)).nil?
+			m.user.notice "#{sub} is already playing a game"
+		else
+			User(sub).set_status(:ingame)
+			User(user).set_status(:standby)
+			$gamelist.find_game_playing(User(user)).sub(User(user), User(sub))
+			$gamelist.games().each { |game| game.remove(User(sub)) }
+			$channel.send "#{user} has been subbed with #{sub} by #{m.user.nick}"
+		end
+	end
+
 
 	on :private do |m|
 		if not m.user.nick == "Q"
