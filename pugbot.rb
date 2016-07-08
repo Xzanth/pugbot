@@ -60,6 +60,11 @@ class GameList
 	def default_game
 		@default
 	end
+
+	def set_topic
+		topic = $gamelist.games().map.with_index { |game, index| "{ Game #{index+1}: #{game} }"}
+		$channel.topic = topic.join(' - ')
+	end
 end
 
 class Game
@@ -69,6 +74,7 @@ class Game
 		@users = Array.new()
 		@ingame = Array.new()
 		@finished = Array.new()
+		@queue = Array.new()
 		@status = :standby
 	end
 
@@ -99,6 +105,10 @@ class Game
 	def add(user)
 		@users.push(user)
 		user.monitor()
+	end
+
+	def queue(user)
+		@queue.push(user)
 	end
 
 	def remove(user)
@@ -158,6 +168,19 @@ class Game
 	def countdown_end()
 		@finished.each { |user| user.set_status(:standby) }
 		@finished = Array.new()
+		$gamelist.games().each { |game| game.check_queue() }
+	end
+
+	def check_queue()
+		work = @queue.select { |user| user.get_status == :standby }
+		if work.length() > 0
+			work = work.shuffle()
+			work.each { |user| self.add(user) }
+			@queue = @queue - work
+			$channel.send("Users have been randomized into queue")
+			self.ready()
+			$gamelist.set_topic()
+		end
 	end
 
 	def print_short()
@@ -254,16 +277,16 @@ bot = Cinch::Bot.new do
 	end
 
 	helpers do
-		def set_topic
-			topic = $gamelist.games().map.with_index { |game, index| "{ Game #{index+1}: #{game} }"}
-			$channel.topic = topic.join(' - ')
-		end
-
 		def try_join(user, game)
 			if game.listed?(user)
 				user.notice "You've already signed up!"
 			elsif game.in_game?(user)
 				user.notice "You are currently in this game"
+			elsif user.get_status == :ingame
+				user.notice "You are currently in a game, please wait for it to finish before joining another"
+			elsif user.get_status == :finished
+				user.notice "You have just finished a game, and are in the queue to join this one"
+				game.queue(user)
 			else
 				game.add(user)
 				game.ready()
@@ -289,7 +312,7 @@ bot = Cinch::Bot.new do
 		elsif $gamelist.games().empty?
 			next
 		else
-			set_topic()
+			$gamelist.set_topic()
 			m.user.notice "Please don't edit the topic if a game is in progress."
 		end
 	end
@@ -314,7 +337,7 @@ bot = Cinch::Bot.new do
 			m.user.notice "A game with that name already exists."
 		elsif num == 0
 			$gamelist.new_game(name)
-			set_topic()
+			$gamelist.set_topic()
 		elsif num.odd?
 			m.user.notice "Game must have an even number of players."
 		elsif num > 32
@@ -323,7 +346,7 @@ bot = Cinch::Bot.new do
 		#	m.user.notice "Games must have at least 6 players."
 		else
 			$gamelist.new_game(name, num)
-			set_topic()
+			$gamelist.set_topic()
 		end
 	end
 
@@ -335,7 +358,7 @@ bot = Cinch::Bot.new do
 		else
 			try_join(m.user, $gamelist.find_game_by_arg(arg))
 		end
-		set_topic()
+		$gamelist.set_topic()
 	end
 
 	on :channel, /^!del\s?(\d+|\w+)?$/ do |m, arg|
@@ -348,7 +371,7 @@ bot = Cinch::Bot.new do
 		else
 			try_leave(m.user, $gamelist.find_game_by_arg(arg))
 		end
-		set_topic()
+		$gamelist.set_topic()
 	end
 
 	#on :channel, /^!remove (.+)$/ do |m, name|
@@ -372,9 +395,11 @@ bot = Cinch::Bot.new do
 		elsif $gamelist.find_game_by_arg(arg).nil?
 			m.user.notice "Game not found."
 		else
-			$gamelist.remove_game($gamelist.find_game_by_arg(arg))
+			game = $gamelist.find_game_by_arg(arg)
+			game.in_game().each { |user| user.set_status(:standby) }
+			$gamelist.remove_game(game)
 		end
-		set_topic()
+		$gamelist.set_topic()
 	end
 
 	on :channel, /^!finish\s?(\d+|\w+)?$/ do |m, arg|
@@ -390,7 +415,7 @@ bot = Cinch::Bot.new do
 				$gamelist.games().each { |g| g.ready() }
 			end
 		end
-		set_topic()
+		$gamelist.set_topic()
 	end
 
 	on :channel, /^!subs\s?(\d+|\w+)?$/ do |m, arg|
