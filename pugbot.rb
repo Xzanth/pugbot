@@ -68,6 +68,7 @@ class Game
 		@max = max
 		@users = Array.new()
 		@ingame = Array.new()
+		@finished = Array.new()
 		@status = :standby
 	end
 
@@ -76,7 +77,7 @@ class Game
 	end
 
 	def available_players
-		@users.select { |user| !user.in_game? }.take(@max)
+		@users.select { |user| user.get_status == :standby }.take(@max)
 	end
 
 	def subs
@@ -124,20 +125,39 @@ class Game
 		if avail.length() >= @max and @status == :standby
 			@status = :ingame
 			@ingame = avail
-			@ingame.each { |user| user.in_game(true) }
+			@ingame.each { |user| user.set_status(:ingame) }
 			@ingame.each { |user| self.remove(user) }
+			@ingame.each { |user| $gamelist.games().each { |game| game.remove(user) } }
+			$channel.send("Game #{@name} - starting for #{@ingame.join(' ')}")
 			return true
-		else
+		elsif @users.length() >= @max and @status == :standby
+			$channel.send("Game #{@name} - ready to start waiting on players to finish game.}")
 			return false
 		end
 	end
 
 	def finish
 		if @status == :ingame
-			@ingame.each { |user| user.in_game(false) }
+			@finished = @ingame
+			@finished.each { |player| player.set_status(:finished) }
 			@ingame = Array.new()
 			@status = :standby
 		end
+	end
+
+	def start_countdown(timer)
+		@countdown = timer
+	end
+
+	def stop_countdown()
+		if @countdown.is_a?(Cinch::Timer)
+			@countdown.stop()
+		end
+	end
+
+	def countdown_end()
+		@finished.each { |user| user.set_status(:standby) }
+		@finished = Array.new()
 	end
 
 	def print_short()
@@ -182,7 +202,7 @@ module Cinch
 		end
 
 		def countdown_end()
-			if self.in_game?
+			if self.get_status() == :ingame
 				$channel.send("#{self.nick} has disconnected but is in game. Please use '!sub #{self.nick} new_player' to replace them if needed.")
 				$gamelist.games.each { |game| game.remove(self) }
 			else
@@ -192,20 +212,19 @@ module Cinch
 			end
 		end
 
-		def in_game?
+		def get_status
 			if @status == :ingame
-				return true
+				return :ingame
+			elsif @status == :finished
+				return :finished
 			else
-				return false
+				return :standby
 			end
 		end
 
-		def in_game(arg)
-			if arg
-				@status = :ingame
-			else
-				@status = :standby
-			end
+		def set_status(arg)
+			puts "#{self} SET #{arg}"
+			@status = arg
 		end
 	end
 end
@@ -364,8 +383,12 @@ bot = Cinch::Bot.new do
 		elsif $gamelist.find_game_by_arg(arg).nil?
 			m.user.notice "Game not found."
 		else
-			$gamelist.find_game_by_arg(arg).finish()
-			$gamelist.games().each { |game| game.ready() }
+			game = $gamelist.find_game_by_arg(arg)
+			if game.status == :ingame
+				game.start_countdown(Timer(30, {shots: 1}) { game.countdown_end() })
+				game.finish()
+				$gamelist.games().each { |g| g.ready() }
+			end
 		end
 		set_topic()
 	end
