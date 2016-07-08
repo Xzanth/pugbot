@@ -202,6 +202,10 @@ class Game
 		end
 	end
 
+	def print_ingame()
+		"#{@name} - Current players: #{@ingame.join(' ')}"
+	end
+
 	def print_subs()
 		if self.subs.empty?
 			"No subs in #{@name} yet"
@@ -338,7 +342,11 @@ bot = Cinch::Bot.new do
 		elsif $gamelist.find_game_by_arg(arg).nil?
 			m.user.notice "Game not found."
 		else
-			m.user.notice $gamelist.find_game_by_arg(arg).print_long()
+			game = $gamelist.find_game_by_arg(arg)
+			m.user.notice game.print_long()
+			if game.status() == :ingame
+				m.user.notice game.print_ingame()
+			end
 		end
 	end
 
@@ -454,6 +462,7 @@ bot = Cinch::Bot.new do
 			$gamelist.find_game_playing(User(user)).sub(User(user), User(sub))
 			$gamelist.games().each { |game| game.remove(User(sub)) }
 			$channel.send "#{user} has been subbed with #{sub} by #{m.user.nick}"
+			$gamelist.set_topic()
 		end
 	end
 
