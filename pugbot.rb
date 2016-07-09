@@ -528,6 +528,9 @@ $client.on :message do |data|
 	when /^!status$/ then
 		$gamelist.games().each do |game|
 			$client.message channel: data['channel'], text: "#{game.print_long}"
+			if game.status() == :ingame
+				$client.message channel: data['channel'], text: "#{game.print_ingame}"
+			end
 		end
 	when /^!/ then
 		$client.web_client.chat_postMessage(channel: '#pugs', text: 'Please join <http://webchat.quakenet.org/?channels=midair.pug|#midair.pug> on quakenet to interact fully with the pug bot', as_user: true)
