@@ -114,7 +114,7 @@ class Game
 
 	def add(user)
 		@users.push(user)
-		user.monitor()
+		user.check_leave(true)
 	end
 
 	def queue(user)
@@ -124,7 +124,7 @@ class Game
 	def remove(user)
 		@users.delete(user)
 		if not $gamelist.is_player_active(user)
-			user.unmonitor()
+			user.check_leave(false)
 		end
 	end
 
@@ -249,7 +249,7 @@ module Cinch
 				$channel.send("#{self.nick} has not returned and has lost their space in the queue.")
 				$gamelist.games.each { |game| game.remove(self) }
 				if not $gamelist.is_player_active(user)
-					user.unmonitor()
+					user.check_leave(false)
 				end
 			end
 		end
@@ -266,6 +266,18 @@ module Cinch
 
 		def set_status(arg)
 			@status = arg
+		end
+
+		def check_leave?
+			if @checkleave
+				return true
+			else
+				return false
+			end
+		end
+
+		def check_leave(arg)
+			@checkleave = arg
 		end
 	end
 end
@@ -294,6 +306,8 @@ bot = Cinch::Bot.new do
 		c.server = $config['server']
 		c.channels = $config['channels']
 		c.local_host = $config['local_host']
+		c.messages_per_second = 0.7
+		c.server_queue_size = 10
 	end
 
 	helpers do
@@ -485,6 +499,13 @@ bot = Cinch::Bot.new do
 		end
 	end
 
+	on :channel, /^!giveup$/ do |m|
+		if m.channel.opped?(m.user.nick)
+			m.user.notice "Access denied - must be a channel operator."
+		else
+			abort("Program killed by admin")
+		end
+	end
 
 	on :private do |m|
 		if not $names.include?(m.user.nick)
@@ -494,7 +515,7 @@ bot = Cinch::Bot.new do
 	end
 
 	on :join do |m|
-		if m.user.monitored?
+		if m.user.check_leave?
 			m.user.stop_countdown()
 		end
 
@@ -508,7 +529,7 @@ bot = Cinch::Bot.new do
 	end
 
 	on :leaving do |m, user|
-		if m.user.monitored?
+		if m.user.check_leave?
 			user.start_countdown(Timer(120, {shots: 1}) { user.countdown_end() })
 			$channel.send("#{user.nick} has disconnected and has 2 mins to return before losing their space.")
 		end
@@ -545,7 +566,7 @@ def update_slack_topic
 		$client.web_client.channels_setTopic(channel: '#pugs', topic: "#{topic}")
 	end
 end
-$timers.now_and_every(60) { update_slack_topic }
+$timers.now_and_every(120) { update_slack_topic }
 threads = []
 threads << Thread.new { $client.start! }
 threads << Thread.new { bot.start }
