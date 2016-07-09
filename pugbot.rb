@@ -41,6 +41,10 @@ class GameList
 		@games.select { |game| game.in_game.include?(user) }[0]
 	end
 
+	def is_player_active(user)
+		@games.any? { |game| game.in_game.include?(user) or game.listed?(user) }
+	end
+
 	def find_game_by_index(i)
 		@games[i]
 	end
@@ -117,7 +121,9 @@ class Game
 
 	def remove(user)
 		@users.delete(user)
-		user.unmonitor()
+		if not $gamelist.is_player_active(user)
+			user.unmonitor()
+		end
 	end
 
 	def sub(user, sub)
@@ -238,7 +244,9 @@ module Cinch
 			else
 				$channel.send("#{self.nick} has not returned and has lost their space in the queue.")
 				$gamelist.games.each { |game| game.remove(self) }
-				self.unmonitor()
+				if not $gamelist.is_player_active(user)
+					user.unmonitor()
+				end
 			end
 		end
 
