@@ -1,6 +1,7 @@
 require 'cinch'
 require 'cinch/plugins/identify'
 require 'slack-ruby-client'
+require 'timers'
 require 'yaml'
 
 class GameList
@@ -73,7 +74,6 @@ class GameList
 	def set_topic
 		topic = $gamelist.games().map.with_index { |game, index| "{ Game #{index+1}: #{game} }"}
 		$channel.topic = topic.join(' - ')
-		$mirror.topic = topic.join(' - ')
 	end
 end
 
@@ -150,6 +150,8 @@ class Game
 			@ingame.each { |user| self.remove(user) }
 			@ingame.each { |user| $gamelist.games().each { |game| game.remove(user) } }
 			$channel.send("Game #{@name} - starting for #{@ingame.join(' ')}")
+			$client.web_client.chat_postMessage(channel: '#pugs', text: "Game #{@name} - starting for #{@ingame.join(' ')} - sign up for the next on <http://webchat.quakenet.org/?channels=midair.pug|#midair.pug>", as_user: true)
+			update_slack_topic
 			return true
 		elsif @users.length() >= @max and @status == :standby
 			$channel.send("Game #{@name} - ready to start waiting on players to finish game.}")
@@ -263,7 +265,6 @@ module Cinch
 		end
 
 		def set_status(arg)
-			puts "#{self} SET #{arg}"
 			@status = arg
 		end
 	end
@@ -277,6 +278,7 @@ rescue Errno::ENOENT
 	$channel = {}
 	$names = []
 end
+$timers = Timers::Group.new
 
 bot = Cinch::Bot.new do
 	configure do |c|
@@ -519,15 +521,30 @@ Slack.configure do |config|
 	config.token = $config['slack_api']
 end
 
-client = Slack::RealTime::Client.new
+$client = Slack::RealTime::Client.new
 
-client.on :message do |data|
+$client.on :message do |data|
 	case data['text']
-	when 'bot hi' then
-		client.message channel: data['channel'], text: "Hi <@#{data['user']}>!"
+	when /^!status$/ then
+		$gamelist.games().each do |game|
+			$client.message channel: data['channel'], text: "#{game.print_long}"
+		end
+	when /^!/ then
+		$client.web_client.chat_postMessage(channel: '#pugs', text: 'Please join <http://webchat.quakenet.org/?channels=midair.pug|#midair.pug> on quakenet to interact fully with the pug bot', as_user: true)
 	end
 end
 
+def update_slack_topic
+	old = $client.web_client.channels_info(channel: '#pugs')
+	topic = $gamelist.games().map.with_index { |game, index| "{ Game #{index+1}: #{game} }"}
+	topic = topic.join(' - ')
+	if topic != old.channel.topic.value
+		$client.web_client.channels_setTopic(channel: '#pugs', topic: "#{topic}")
+	end
+end
+$timers.now_and_every(60) { update_slack_topic }
 threads = []
-threads << Thread.new { client.start! }
+threads << Thread.new { $client.start! }
 threads << Thread.new { bot.start }
+threads << Thread.new { loop { $timers.wait } }
+threads.each { |thr| thr.join }
