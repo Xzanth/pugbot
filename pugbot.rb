@@ -251,6 +251,7 @@ module Cinch
 				if not $gamelist.is_player_active(user)
 					user.check_leave(false)
 				end
+				$gamelist.set_topic()
 			end
 		end
 
@@ -566,7 +567,7 @@ def update_slack_topic
 		$client.web_client.channels_setTopic(channel: '#pugs', topic: "#{topic}")
 	end
 end
-$timers.now_and_every(120) { update_slack_topic }
+$timers.now_and_every(300) { update_slack_topic }
 threads = []
 threads << Thread.new { $client.start! }
 threads << Thread.new { bot.start }
