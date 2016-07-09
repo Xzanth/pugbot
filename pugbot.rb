@@ -1,5 +1,6 @@
 require 'cinch'
 require 'cinch/plugins/identify'
+require 'slack-ruby-client'
 require 'yaml'
 
 class GameList
@@ -506,4 +507,19 @@ bot = Cinch::Bot.new do
 	end
 end
 
-bot.start
+Slack.configure do |config|
+	config.token = $config['slack_api']
+end
+
+client = Slack::RealTime::Client.new
+
+client.on :message do |data|
+	case data['text']
+	when 'bot hi' then
+		client.message channel: data['channel'], text: "Hi <@#{data['user']}>!"
+	end
+end
+
+threads = []
+threads << Thread.new { client.start! }
+threads << Thread.new { bot.start }
