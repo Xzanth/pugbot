@@ -72,6 +72,7 @@ class GameList
 	def set_topic
 		topic = $gamelist.games().map.with_index { |game, index| "{ Game #{index+1}: #{game} }"}
 		$channel.topic = topic.join(' - ')
+		$mirror.topic = topic.join(' - ')
 	end
 end
 
@@ -380,6 +381,8 @@ bot = Cinch::Bot.new do
 	on :channel, /^!add\s?(\d+|\w+)?$/ do |m, arg|
 		if $gamelist.games().empty?
 			m.user.notice "No games currently active."
+		elsif arg == "all"
+			$gamelist.games().each { |game| try_join(m.user, game) }
 		elsif $gamelist.find_game_by_arg(arg).nil?
 			m.user.notice "Game not found."
 		else
