@@ -120,6 +120,7 @@ begin
 	$game = YAML.load(File.read('game.yml'))
 rescue Errno::ENOENT
 	$game = {}
+	$names = []
 end
 
 
@@ -254,8 +255,9 @@ bot = Cinch::Bot.new do
 	end
 
 	on :private do |m|
-		if not m.user.nick == "Q"
+		if not $names.include?(m.user.nick)
 			m.reply "I am a bot, please direct all questions/comments to Xzanth"
+			$names.push(m.user.nick)
 		end
 	end
 
@@ -282,5 +284,7 @@ bot = Cinch::Bot.new do
 		end
 	end
 end
+
+bot.loggers << Cinch::Logger::FormattedLogger.new(File.open("log.log", "a"))
 
 bot.start
