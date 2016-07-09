@@ -334,12 +334,14 @@ bot = Cinch::Bot.new do
 	end
 
 	on :channel, /^!help$/ do |m|
-		m.user.notice "Supported commands are: !help, !status, !start, !add, !del, !subs. And for channel operators: !finish, !end and !remove."
+		m.user.notice "Supported commands are: !help, !status (all|gamename|num), !finish (gamename|num), !add (all|gamename|num), !del (all|gamename|num), !subs and !sub (name1) (name2). And for channel operators: !start gamename (num), !end (gamename|num) and !remove name."
 	end
 
 	on :channel, /^!status\s?(\d+|\w+)?$/ do |m, arg|
 		if $gamelist.games().empty?
 			m.user.notice "No games currently active."
+		elsif arg == "all"
+			$gamelist.games().each { |game| m.user.notice game.print_long() }
 		elsif $gamelist.find_game_by_arg(arg).nil?
 			m.user.notice "Game not found."
 		else
@@ -353,7 +355,9 @@ bot = Cinch::Bot.new do
 
 	on :channel, /^!start ([a-zA-Z]+)\s?(\d+)?$/ do |m, name, num|
 		num = num.to_i
-		if $gamelist.find_game_by_name(name)
+		if not m.channel.opped?(m.user.nick)
+			m.user.notice "Access denied - must be a channel operator."
+		elsif $gamelist.find_game_by_name(name)
 			m.user.notice "A game with that name already exists."
 		elsif num == 0
 			$gamelist.new_game(name)
@@ -373,6 +377,8 @@ bot = Cinch::Bot.new do
 	on :channel, /^!add\s?(\d+|\w+)?$/ do |m, arg|
 		if $gamelist.games().empty?
 			m.user.notice "No games currently active."
+		elsif arg == "all"
+			$gamelist.games().each { |game| try_join(m.user, game) }
 		elsif $gamelist.find_game_by_arg(arg).nil?
 			m.user.notice "Game not found."
 		else
@@ -384,7 +390,7 @@ bot = Cinch::Bot.new do
 	on :channel, /^!del\s?(\d+|\w+)?$/ do |m, arg|
 		if $gamelist.games().empty?
 			m.user.notice "No games currently active."
-		elsif arg.nil?
+		elsif arg.nil? or arg == "all"
 			$gamelist.games().each { |game| try_leave(m.user, game) }
 		elsif $gamelist.find_game_by_arg(arg).nil?
 			m.user.notice "Game not found."
