@@ -2,97 +2,170 @@ require 'cinch'
 require 'cinch/plugins/identify'
 require 'yaml'
 
+class GameList
+	def initialize()
+		@games = Array.new()
+		@default = nil
+	end
+
+	def new_game(name, max=10)
+		game = Game.new(name, max)
+		if @games.empty?
+			@default = game
+		end
+		@games.push(game)
+	end
+
+	def remove_game(game)
+		if @default == game
+			@default = @games[0]
+		end
+		@games.delete(game)
+	end
+
+	def games
+		@games
+	end
+
+	def find_game_by_name(name)
+		gamenames = Array.new()
+		@games.each { |game| gamenames.push(game.name()) }
+		if gamenames.include?(name)
+			return @games[gamenames.index(name)]
+		else
+			return nil
+		end
+	end
+
+	def find_game_by_index(i)
+		@games[i]
+	end
+
+	def find_game_by_arg(arg)
+		if arg.nil?
+			self.default_game()
+		elsif arg =~ /^\d+$/
+			self.find_game_by_index(arg.to_i - 1)
+		elsif arg =~ /^\w+$/
+			self.find_game_by_name(arg)
+		else
+			nil
+		end
+	end
+
+	def set_default(game)
+		@default = game
+	end
+
+	def default_game
+		@default
+	end
+end
+
 class Game
-	def initialize(channel, arg=10)
-		@max = arg
-		@players = Array.new()
-		@subs = Array.new()
-		@channel = channel
+	def initialize(name, max)
+		@name = name
+		@max = max
+		@users = Array.new()
+		@ingame = Array.new()
+		@status = :standby
+	end
+
+	def players
+		@users.take(@max)
+	end
+
+	def available_players
+		@users.select { |user| !user.in_game? }.take(@max)
+	end
+
+	def subs
+		@users.drop(@max)
+	end
+
+	def in_game
+		@ingame
+	end
+
+	def listed?(user)
+		@users.include?(user)
+	end
+
+	def in_game?(user)
+		@ingame.include?(user)
 	end
 
 	def add(user)
-		@players.push(user)
+		@users.push(user)
 		user.monitor()
-	end
-
-	def add_sub(user)
-		@subs.push(user)
-		user.monitor()
-	end
-
-	def is_player(user)
-		@players.include?(user)
-	end
-
-	def is_sub(user)
-		@subs.include?(user)
-	end
-
-	def is_listed(user)
-		self.is_player(user) or self.is_sub(user)
-	end
-
-	def is_full()
-		if @players.length < @max
-			false
-		else
-			true
-		end
 	end
 
 	def remove(user)
-		if self.is_player(user)
-			@players.delete(user)
-			$game.update()
-			self.check_start()
-		elsif self.is_sub(user)
-			@subs.delete(user)
-			$game.update()
+		@users.delete(user)
+		user.unmonitor()
+	end
+
+	def sub(user, sub)
+		@ingame.delete(user)
+		@users.delete(sub)
+		@ingame.push(sub)
+	end
+
+	def name
+		@name
+	end
+
+	def status
+		@status
+	end
+
+	def ready
+		avail = self.available_players()
+		if avail.length() >= @max and @status == :standby
+			@status = :ingame
+			@ingame = avail
+			@ingame.each { |user| user.in_game(true) }
+			@ingame.each { |user| self.remove(user) }
+			return true
 		else
 			return false
 		end
-		user.unmonitor()
-		return true
 	end
 
-	def update()
-		free = @max - @players.length
-		if !@subs.empty? and free > 0
-			@subs.take(free).each { |a| @players.push(a) }
-			@subs = @subs.drop(free)
-		end
-		@channel.topic = self.to_s
-		#File.open('game.yml', 'w') {|f| f.write(YAML.dump(self)) }
-	end
-
-	def check_start()
-		if (@max - @players.length) == 0
-			@channel.send("Game starting for: #{@players.join(' ')}")
+	def finish
+		if @status == :ingame
+			@ingame.each { |user| user.in_game(false) }
+			@ingame = Array.new()
+			@status = :standby
 		end
 	end
 
-	def renew()
-		@players.each { |a| a.unmonitor() }
-		@players = @subs.take(@max)
-		@subs = @subs.drop(@max)
+	def print_short()
+		if @status == :ingame
+			"#{@name} - IN GAME - [#{self.players.length}/#{@max}] + #{self.subs.length}"
+		else
+			"#{@name} - [#{self.players.length}/#{@max}] + #{self.subs.length}"
+		end
 	end
 
-	def list_subs()
-		"#{@subs.join(' ')}"
+	def print_long()
+		if @status == :ingame
+			"Game: #{@name} - IN GAME - [#{self.players.length}/#{@max}]: #{self.players.join(' ')} - Subs: #{self.subs.length}"
+		else
+			"Game: #{@name} - [#{self.players.length}/#{@max}]: #{self.players.join(' ')} - Subs: #{self.subs.length}"
+		end
 	end
 
-	def get_channel()
-		@channel
+	def print_subs()
+		if self.subs.empty?
+			"No subs in #{@name} yet"
+		else
+			"Game: #{@name} - Subs #{@subs.join(' ')}"
+		end
 	end
 
 	def to_s()
-		if @players.empty?
-			return "[#{@players.length}/#{@max}]"
-		elsif @subs.empty?
-			return "[#{@players.length}/#{@max}]: #{@players.join(' ')}"
-		else
-			return "[#{@players.length}/#{@max}]: #{@players.join(' ')} - Subs: #{@subs.length}"
-		end
+		self.print_short()
 	end
 end
 
@@ -109,45 +182,96 @@ module Cinch
 		end
 
 		def countdown_end()
-			$game.get_channel().send("#{self.nick} has not returned and has lost their space in the queue.")
-			$game.remove(self)
-			self.unmonitor()
+			if self.in_game?
+				$channel.send("#{self.nick} has disconnected but is in game. Please use '!sub #{self.nick} new_player' to replace them if needed.")
+				$gamelist.games.each { |game| game.remove(self) }
+			else
+				$channel.send("#{self.nick} has not returned and has lost their space in the queue.")
+				$gamelist.games.each { |game| game.remove(self) }
+				self.unmonitor()
+			end
+		end
+
+		def in_game?
+			if @status == :ingame
+				return true
+			else
+				return false
+			end
+		end
+
+		def in_game(arg)
+			if arg
+				@status = :ingame
+			else
+				@status = :standby
+			end
 		end
 	end
 end
 
+$config = YAML::load_file(File.join(__dir__, 'config.yml'))
 begin
 	$game = YAML.load(File.read('game.yml'))
 rescue Errno::ENOENT
-	$game = {}
+	$gamelist = GameList.new()
+	$channel = {}
 	$names = []
 end
 
-
 bot = Cinch::Bot.new do
 	configure do |c|
-		config = YAML::load_file(File.join(__dir__, 'config.yml'))
 		c.plugins.plugins = [Cinch::Plugins::Identify]
 		c.plugins.options[Cinch::Plugins::Identify] = {
-			:username => config['username'],
-			:password => config['password'],
-			:type     => config['auth'],
+			:username => $config['username'],
+			:password => $config['password'],
+			:type     => $config['auth'],
 		}
-		c.nick = config['nick']
-		c.realname = config['realname']
-		c.user = config['user']
-		c.server = config['server']
-		c.channels = config['channels']
-		c.local_host = config['local_host']
+		c.nick = $config['nick']
+		c.realname = $config['realname']
+		c.user = $config['user']
+		c.server = $config['server']
+		c.channels = $config['channels']
+		c.local_host = $config['local_host']
+	end
+
+	helpers do
+		def set_topic
+			topic = $gamelist.games().map.with_index { |game, index| "{ Game #{index+1}: #{game} }"}
+			$channel.topic = topic.join(' - ')
+		end
+
+		def try_join(user, game)
+			if game.listed?(user)
+				user.notice "You've already signed up!"
+			elsif game.in_game?(user)
+				user.notice "You are currently in this game"
+			else
+				game.add(user)
+				game.ready()
+			end
+		end
+
+		def try_leave(user, game)
+			if game.in_game?(user)
+				user.notice "You are currently in game please find a replacement and use '!sub #{user.nick} sub_name'"
+			elsif not game.listed?(user)
+				user.notice "You haven't signed up!"
+			else
+				$channel.send "#{user.nick} has abandoned #{game.name()}"
+				game.remove(user)
+			end
+		end
+
 	end
 
 	on :topic do |m|
 		if m.user.nick == bot.nick
 			next
-		elsif $game == {}
+		elsif $gamelist.games().empty?
 			next
 		else
-			$game.update()
+			set_topic()
 			m.user.notice "Please don't edit the topic if a game is in progress."
 		end
 	end
@@ -156,103 +280,109 @@ bot = Cinch::Bot.new do
 		m.user.notice "Supported commands are: !help, !status, !start, !add, !del, !subs. And for channel operators: !finish, !end and !remove."
 	end
 
-	on :channel, /^!status$/ do |m|
-		if $game == {}
-			m.user.notice "No game currently active."
+	on :channel, /^!status\s?(\d+|\w+)?$/ do |m, arg|
+		if $gamelist.games().empty?
+			m.user.notice "No games currently active."
+		elsif $gamelist.find_game_by_arg(arg).nil?
+			m.user.notice "Game not found."
 		else
-			m.user.notice "Players: #{$game}"
+			m.user.notice $gamelist.find_game_by_arg(arg).print_long()
 		end
 	end
 
-	on :channel, /^!start\s?(\d+)?$/ do |m, num|
+	on :channel, /^!start ([a-zA-Z]+)\s?(\d+)?$/ do |m, name, num|
 		num = num.to_i
-		if $game != {}
-			m.user.notice "Game exists, please finish current game."
+		if $gamelist.find_game_by_name(name)
+			m.user.notice "A game with that name already exists."
 		elsif num == 0
-			$game = Game.new(m.channel)
-			$game.update()
+			$gamelist.new_game(name)
+			set_topic()
 		elsif num.odd?
 			m.user.notice "Game must have an even number of players."
 		elsif num > 32
 			m.user.notice "Games must have 32 or less players."
-		elsif num < 6
-			m.user.notice "Games must have at least 6 players."
+		#elsif num < 6
+		#	m.user.notice "Games must have at least 6 players."
 		else
-			$game = Game.new(m.channel, num)
-			$game.update()
+			$gamelist.new_game(name, num)
+			set_topic()
 		end
 	end
 
-	on :channel, /^!add$/ do |m|
-		if $game == {}
-			m.user.notice "No game currently active."
-		elsif $game.is_listed(m.user.nick)
-			m.user.notice "You've already signed up!"
-		elsif $game.is_full()
-			$game.add_sub(m.user)
-			$game.update()
-			m.user.notice "This game is full, you have been added as a sub and will get priority next game."
+	on :channel, /^!add\s?(\d+|\w+)?$/ do |m, arg|
+		if $gamelist.games().empty?
+			m.user.notice "No games currently active."
+		elsif $gamelist.find_game_by_arg(arg).nil?
+			m.user.notice "Game not found."
 		else
-			$game.add(m.user)
-			$game.update()
-			$game.check_start()
+			try_join(m.user, $gamelist.find_game_by_arg(arg))
 		end
+		set_topic()
 	end
 
-	on :channel, /^!del$/ do |m|
-		if $game == {}
-			m.user.notice "No game currently active."
-		elsif not $game.is_listed(m.user)
-			m.user.notice "You haven't signed up!"
+	on :channel, /^!del\s?(\d+|\w+)?$/ do |m, arg|
+		if $gamelist.games().empty?
+			m.user.notice "No games currently active."
+		elsif arg.nil?
+			$gamelist.games().each { |game| try_leave(m.user, game) }
+		elsif $gamelist.find_game_by_arg(arg).nil?
+			m.user.notice "Game not found."
 		else
-			m.reply "#{m.user.nick} has abandoned us!"
-			$game.remove(m.user)
+			try_leave(m.user, $gamelist.find_game_by_arg(arg))
 		end
+		set_topic()
 	end
 
-	on :channel, /^!remove (.+)$/ do |m, name|
+	#on :channel, /^!remove (.+)$/ do |m, name|
+	#	if not m.channel.opped?(m.user.nick)
+	#		m.user.notice "Access denied - must be a channel operator."
+	#	elsif $game == {}
+	#		m.user.notice "No game currently active."
+	#	elsif not $game.is_listed(User(name))
+	#		m.user.notice "#{name} hasn't signed up!."
+	#	else
+	#		m.reply "#{name} has been removed by #{m.user.nick}."
+	#		$game.remove(User(name))
+	#	end
+	#end
+
+	on :channel, /^!end\s?(\d+|\w+)?$/ do |m, arg|
 		if not m.channel.opped?(m.user.nick)
 			m.user.notice "Access denied - must be a channel operator."
-		elsif $game == {}
-			m.user.notice "No game currently active."
-		elsif not $game.is_listed(User(name))
-			m.user.notice "#{name} hasn't signed up!."
+		elsif $gamelist.games().empty?
+			m.user.notice "No games currently active."
+		elsif $gamelist.find_game_by_arg(arg).nil?
+			m.user.notice "Game not found."
 		else
-			m.reply "#{name} has been removed by #{m.user.nick}."
-			$game.remove(User(name))
+			$gamelist.remove_game($gamelist.find_game_by_arg(arg))
+		end
+		set_topic()
+	end
+
+	on :channel, /^!finish\s?(\d+|\w+)?$/ do |m, arg|
+		if $gamelist.games().empty?
+			m.user.notice "No games currently active."
+		elsif $gamelist.find_game_by_arg(arg).nil?
+			m.user.notice "Game not found."
+		else
+			$gamelist.find_game_by_arg(arg).finish()
+			$gamelist.games().each { |game| game.ready() }
+		end
+		set_topic()
+	end
+
+	on :channel, /^!subs\s?(\d+|\w+)?$/ do |m, arg|
+		if $gamelist.games().empty?
+			m.user.notice "No games currently active."
+		elsif $gamelist.find_game_by_arg(arg).nil?
+			m.user.notice "Game not found."
+		else
+			m.user.notice $gamelist.find_game_by_arg(arg).print_subs()
 		end
 	end
 
-	on :channel, /^!end$/ do |m|
-		if not m.channel.opped?(m.user.nick)
-			m.user.notice "Access denied - must be a channel operator."
-		elsif $game == {}
-			m.user.notice "No game currently active."
-		else
-			$game = {}
-			m.reply "Game ended by #{m.user.nick}."
-			m.channel.topic = ""
-		end
-	end
-
-	on :channel, /^!finish$/ do |m|
-		if not m.channel.opped?(m.user.nick)
-			m.user.notice "Access denied - must be a channel operator."
-		elsif $game == {}
-			m.user.notice "No game currently active."
-		else
-			$game.renew
-			$game.update()
-		end
-	end
-
-	on :channel, /^!subs$/ do |m|
-		if $game == {}
-			m.user.notice "No game currently active."
-		else
-			m.user.notice "Subs: #{$game.list_subs}"
-		end
-	end
+	#on :channel /^!sub (.+) (.+)$/ do |m, user, sub|
+	#	if 
 
 	on :private do |m|
 		if not $names.include?(m.user.nick)
@@ -267,20 +397,18 @@ bot = Cinch::Bot.new do
 		end
 
 		if m.user.nick == bot.nick
-			next
-		elsif $game == {}
-			m.user.notice "Welcome to #{m.channel} - no games are currently active type !start to begin signups."
-		elsif $game.is_full()
-			m.user.notice "Welcome to #{m.channel} - the next game is currently full, type !add to register as a sub and get in queue for the next game."
+			$channel = m.channel
+		elsif $gamelist.games().empty?
+			m.user.notice "Welcome to #{m.channel} - no games are currently active type '!start name (numberofplayers)' to start a game"
 		else
-			m.user.notice "Welcome to #{m.channel} - signups for the next game are currently in progress, just type !add to sign up."
+			m.user.notice "Welcome to #{m.channel} - sign up for games by typing '!add nameofgame' and remove yourself from signups with '!del'"
 		end
 	end
 
 	on :leaving do |m, user|
 		if m.user.monitored?
 			user.start_countdown(Timer(120, {shots: 1}) { user.countdown_end() })
-			$game.get_channel.send("#{user.nick} has disconnected and has 2 mins to return before losing their space.")
+			$channel.send("#{user.nick} has disconnected and has 2 mins to return before losing their space.")
 		end
 	end
 end
