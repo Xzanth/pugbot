@@ -4,78 +4,8 @@ require 'slack-ruby-client'
 require 'timers'
 require 'yaml'
 
-class GameList
-	def initialize()
-		@games = Array.new()
-		@default = nil
-	end
+require_relative 'pugbot/game_list'
 
-	def new_game(name, max=10)
-		game = Game.new(name, max)
-		if @games.empty?
-			@default = game
-		end
-		@games.push(game)
-	end
-
-	def remove_game(game)
-		if @default == game
-			@default = @games[0]
-		end
-		@games.delete(game)
-	end
-
-	def games
-		@games
-	end
-
-	def find_game_by_name(name)
-		gamenames = Array.new()
-		@games.each { |game| gamenames.push(game.name()) }
-		if gamenames.include?(name)
-			return @games[gamenames.index(name)]
-		else
-			return nil
-		end
-	end
-
-	def find_game_playing(user)
-		@games.select { |game| game.in_game.include?(user) }[0]
-	end
-
-	def is_player_active(user)
-		@games.any? { |game| game.in_game.include?(user) or game.listed?(user) }
-	end
-
-	def find_game_by_index(i)
-		@games[i]
-	end
-
-	def find_game_by_arg(arg)
-		if arg.nil?
-			self.default_game()
-		elsif arg =~ /^\d+$/
-			self.find_game_by_index(arg.to_i - 1)
-		elsif arg =~ /^\w+$/
-			self.find_game_by_name(arg)
-		else
-			nil
-		end
-	end
-
-	def set_default(game)
-		@default = game
-	end
-
-	def default_game
-		@default
-	end
-
-	def set_topic
-		topic = $gamelist.games().map.with_index { |game, index| "{ Game #{index+1}: #{game} }"}
-		$channel.topic = topic.join(' - ')
-	end
-end
 
 class Game
 	def initialize(name, max)
