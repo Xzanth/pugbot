@@ -121,6 +121,10 @@ class Game
 		@queue.push(user)
 	end
 
+	def queued?(user)
+		@queue.include?(user)
+	end
+
 	def remove(user)
 		@users.delete(user)
 		if not $gamelist.is_player_active(user)
@@ -151,7 +155,6 @@ class Game
 			@ingame.each { |user| $gamelist.games().each { |game| game.remove(user) } }
 			$channel.send("Game #{@name} - starting for #{@ingame.join(' ')}")
 			$client.web_client.chat_postMessage(channel: '#pugs', text: "Game #{@name} - starting for #{@ingame.join(' ')} - sign up for the next on <http://webchat.quakenet.org/?channels=midair.pug|#midair.pug>", as_user: true)
-			update_slack_topic
 			return true
 		elsif @users.length() >= @max and @status == :standby
 			$channel.send("Game #{@name} - ready to start waiting on players to finish game.}")
@@ -162,7 +165,10 @@ class Game
 	def finish
 		if @status == :ingame
 			@finished = @ingame
-			@finished.each { |player| player.set_status(:finished) }
+			@finished.each do |player|
+				player.set_status(:finished)
+				player.check_leave(false)
+			end
 			@ingame = Array.new()
 			@status = :standby
 		end
@@ -320,8 +326,12 @@ bot = Cinch::Bot.new do
 			elsif user.get_status == :ingame
 				user.notice "You are currently in a game, please wait for it to finish before joining another"
 			elsif user.get_status == :finished
-				user.notice "You have just finished a game, and are in the queue to join this one"
-				game.queue(user)
+				if game.queued?(user)
+					user.notice "You are already in queue to join the next"
+				else
+					user.notice "You have just finished a game, and are in the queue to join this one"
+					game.queue(user)
+				end
 			else
 				game.add(user)
 				game.ready()
@@ -567,7 +577,7 @@ def update_slack_topic
 		$client.web_client.channels_setTopic(channel: '#pugs', topic: "#{topic}")
 	end
 end
-$timers.now_and_every(300) { update_slack_topic }
+#$timers.now_and_every(300) { update_slack_topic }
 threads = []
 threads << Thread.new { $client.start! }
 threads << Thread.new { bot.start }
