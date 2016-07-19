@@ -2,7 +2,6 @@
 # actions regarding locating, creating, deleting games as well as handling
 # a game being default and any other methods that are related to all games.
 class GameList
-
 	# @return [Array<Game>] The games currently in this game list
 	attr_reader :games
 
@@ -61,7 +60,9 @@ class GameList
 	# @param [Cinch::User] user The user we want to know about
 	# @return [Boolean] Whether they are playing/queued or not
 	def is_player_active(user)
-		@games.any? { |game| game.in_game.include?(user) or game.listed?(user) }
+		@games.any? do |game|
+			game.in_game.include?(user) or game.listed?(user)
+		end
 	end
 
 	# Removed method find_game_by_index
@@ -94,7 +95,9 @@ class GameList
 	# @return [String] The nicely formatted list
 	def set_topic
 		# [TODO]: globals ugh
-		topic = $gamelist.games().map.with_index { |game, index| "{ Game #{index+1}: #{game} }"}
+		topic = $gamelist.games().map.with_index do |game, index|
+			"{ Game #{index+1}: #{game} }"
+		end
 		$channel.topic = topic.join(' - ')
 	end
 end
