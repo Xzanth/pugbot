@@ -4,229 +4,14 @@ require 'slack-ruby-client'
 require 'timers'
 require 'yaml'
 
-require_relative 'pugbot/game_list'
-
-
-class Game
-	def initialize(name, max)
-		@name = name
-		@max = max
-		@users = Array.new()
-		@ingame = Array.new()
-		@finished = Array.new()
-		@queue = Array.new()
-		@status = :standby
-	end
-
-	def players
-		@users.take(@max)
-	end
-
-	def available_players
-		@users.select { |user| user.get_status == :standby }.take(@max)
-	end
-
-	def subs
-		@users.drop(@max)
-	end
-
-	def in_game
-		@ingame
-	end
-
-	def listed?(user)
-		@users.include?(user)
-	end
-
-	def in_game?(user)
-		@ingame.include?(user)
-	end
-
-	def add(user)
-		@users.push(user)
-		user.check_leave(true)
-	end
-
-	def queue(user)
-		@queue.push(user)
-	end
-
-	def queued?(user)
-		@queue.include?(user)
-	end
-
-	def remove(user)
-		@users.delete(user)
-		if not $gamelist.is_player_active(user)
-			user.check_leave(false)
-		end
-	end
-
-	def sub(user, sub)
-		@ingame.delete(user)
-		@ingame.push(sub)
-	end
-
-	def name
-		@name
-	end
-
-	def status
-		@status
-	end
-
-	def ready
-		avail = self.available_players()
-		if avail.length() >= @max and @status == :standby
-			@status = :ingame
-			@ingame = avail
-			@ingame.each { |user| user.set_status(:ingame) }
-			@ingame.each { |user| self.remove(user) }
-			@ingame.each { |user| $gamelist.games().each { |game| game.remove(user) } }
-			$channel.send("Game #{@name} - starting for #{@ingame.join(' ')}")
-			$client.web_client.chat_postMessage(channel: '#pugs', text: "Game #{@name} - starting for #{@ingame.join(' ')} - sign up for the next on <http://webchat.quakenet.org/?channels=midair.pug|#midair.pug>", as_user: true)
-			return true
-		elsif @users.length() >= @max and @status == :standby
-			$channel.send("Game #{@name} - ready to start waiting on players to finish game.}")
-			return false
-		end
-	end
-
-	def finish
-		if @status == :ingame
-			@finished = @ingame
-			@finished.each do |player|
-				player.set_status(:finished)
-				player.check_leave(false)
-			end
-			@ingame = Array.new()
-			@status = :standby
-		end
-	end
-
-	def start_countdown(timer)
-		@countdown = timer
-	end
-
-	def stop_countdown()
-		if @countdown.is_a?(Cinch::Timer)
-			@countdown.stop()
-		end
-	end
-
-	def countdown_end()
-		@finished.each { |user| user.set_status(:standby) }
-		@finished = Array.new()
-		$gamelist.games().each { |game| game.check_queue() }
-	end
-
-	def check_queue()
-		work = @queue.select { |user| user.get_status == :standby }
-		if work.length() > 0
-			work = work.shuffle()
-			work.each { |user| self.add(user) }
-			@queue = @queue - work
-			$channel.send("Users have been randomized into queue")
-			self.ready()
-			$gamelist.set_topic()
-		end
-	end
-
-	def print_short()
-		if @status == :ingame
-			"#{@name} - IN GAME - [#{self.players.length}/#{@max}] + #{self.subs.length}"
-		else
-			"#{@name} - [#{self.players.length}/#{@max}] + #{self.subs.length}"
-		end
-	end
-
-	def print_long()
-		if @status == :ingame
-			"Game: #{@name} - IN GAME - [#{self.players.length}/#{@max}]: #{self.players.join(' ')} - Subs: #{self.subs.length}"
-		else
-			"Game: #{@name} - [#{self.players.length}/#{@max}]: #{self.players.join(' ')} - Subs: #{self.subs.length}"
-		end
-	end
-
-	def print_ingame()
-		"#{@name} - Current players: #{@ingame.join(' ')}"
-	end
-
-	def print_subs()
-		if self.subs.empty?
-			"No subs in #{@name} yet"
-		else
-			"Game: #{@name} - Subs #{@subs.join(' ')}"
-		end
-	end
-
-	def to_s()
-		self.print_short()
-	end
-end
-
-module Cinch
-	class User
-		def start_countdown(timer)
-			@countdown = timer
-		end
-
-		def stop_countdown()
-			if @countdown.is_a?(Cinch::Timer)
-				@countdown.stop()
-			end
-		end
-
-		def countdown_end()
-			if self.get_status() == :ingame
-				$channel.send("#{self.nick} has disconnected but is in game. Please use '!sub #{self.nick} new_player' to replace them if needed.")
-				$gamelist.games.each { |game| game.remove(self) }
-			else
-				$channel.send("#{self.nick} has not returned and has lost their space in the queue.")
-				$gamelist.games.each { |game| game.remove(self) }
-				if not $gamelist.is_player_active(user)
-					user.check_leave(false)
-				end
-				$gamelist.set_topic()
-			end
-		end
-
-		def get_status
-			if @status == :ingame
-				return :ingame
-			elsif @status == :finished
-				return :finished
-			else
-				return :standby
-			end
-		end
-
-		def set_status(arg)
-			@status = arg
-		end
-
-		def check_leave?
-			if @checkleave
-				return true
-			else
-				return false
-			end
-		end
-
-		def check_leave(arg)
-			@checkleave = arg
-		end
-	end
-end
+require_relative 'pugbot/queue_list'
+require_relative 'pugbot/queue'
+require_relative 'pugbot/game'
 
 $config = YAML::load_file(File.join(__dir__, 'config.yml'))
-begin
-	$game = YAML.load(File.read('game.yml'))
-rescue Errno::ENOENT
-	$gamelist = GameList.new()
-	$channel = {}
-	$names = []
-end
+$gamelist = QueueList.new()
+$channel = {}
+$names = []
 $timers = Timers::Group.new
 
 bot = Cinch::Bot.new do
@@ -248,14 +33,14 @@ bot = Cinch::Bot.new do
 	end
 
 	helpers do
-		def try_join(user, game)
-			if game.listed?(user)
+		def try_join(user, queue)
+			if queue.listed?(user)
 				user.notice "You've already signed up!"
-			elsif game.in_game?(user)
+			elsif queue.in_game?(user)
 				user.notice "You are currently in this game"
-			elsif user.get_status == :ingame
+			elsif user.status == :ingame
 				user.notice "You are currently in a game, please wait for it to finish before joining another"
-			elsif user.get_status == :finished
+			elsif user.status == :finished
 				if game.queued?(user)
 					user.notice "You are already in queue to join the next"
 				else
