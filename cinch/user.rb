@@ -18,6 +18,8 @@ module Cinch
     def left
       return unless @track
       @countdown = $timers.after(120) { timeout }
+      $channel.send "#{@nick} has disconnected and has 2 mins to return before"\
+      " losing their space in queue."
     end
 
     # To be called whenever the user rejoins the pug channel, if

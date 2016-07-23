@@ -6,6 +6,9 @@ module PugBot
     # @return [String] The name of the queue
     attr_reader :name
 
+    # @return [Array<Game>] All the games being played in this queue
+    attr_reader :games
+
     def intialize(name, max)
       @name = name
       @max = max
@@ -64,6 +67,13 @@ module PugBot
     # @return [Boolean] Whether they are in the wait queue or not
     def listed_wait?(user)
       @wait.include?(user)
+    end
+
+    # Test if a user is either in the queue or the wait queue
+    # @param [Cinch::User] user The user to test for
+    # @return [Boolean] Whether they are in either queue or not
+    def listed_either?(user)
+      listed_wait?(user) or listed?(user)
     end
 
     # Test if a user is in any game being played in this queue.
