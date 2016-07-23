@@ -4,6 +4,9 @@ Metrics/MethodLength:
 Metrics/ClassLength:
   Max: 300
 
+Metrics/AbcSize:
+  Max: 20
+
 Style/StringLiterals:
   EnforcedStyle: double_quotes
 
