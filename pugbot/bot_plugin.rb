@@ -1,3 +1,7 @@
+require_relative "queue_list"
+require_relative "queue"
+require_relative "game"
+
 module PugBot
   # The plugin to be imported into a cinch bot instance that actually interprets
   # the users input, tracks players and controls nearly all running of the pug
