@@ -1,10 +1,9 @@
 # PUGBOT: A cinch plugin
 
-[![GitHub](//img.shields.io/badge/github-Xzanth/pugbot-blue.svg)](http://github.com/Xzanth/pugbot)
-[![Documentation](//img.shields.io/badge/docs-rdoc.info-blue.svg)](http://rubydoc.org/github/Xzanth/pugbot/frames)
-[![License](//img.shields.io/badge/license-MIT-red.svg)](#license)
-[![Code Climate](//img.shields.io/codeclimate/github/Xzanth/pugbot.svg)](https://codeclimate.com/github/Xzanth/pugbot)
-[![Inline docs](//inch-ci.org/github/Xzanth/pugbot.svg)](http://inch-ci.org/github/Xzanth/pugbot)
+[![GitHub](http://img.shields.io/badge/github-Xzanth/pugbot-blue.svg)](http://github.com/Xzanth/pugbot)
+[![Docs](http://inch-ci.org/github/Xzanth/pugbot.svg?style=shields)](http://rubydoc.org/github/Xzanth/pugbot/frames)
+[![License](http://img.shields.io/badge/license-MIT-red.svg)](#license)
+[![Code Climate](http://img.shields.io/codeclimate/github/Xzanth/pugbot.svg)](https://codeclimate.com/github/Xzanth/pugbot)
 
 ## Synopsis
 
