@@ -1,5 +1,8 @@
 module PugBot
-  class BotPlugin # :nodoc:  re-opened
+  # The plugin to be imported into a cinch bot instance that actually interprets
+  # the users input, tracks players and controls nearly all running of the pug
+  # bot itself.
+  class BotPlugin
     # Set up variables, called when the bot first connects to irc. Start an
     # array of names to not pmsg back.
     # @return [void]
