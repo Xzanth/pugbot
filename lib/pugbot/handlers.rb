@@ -23,7 +23,7 @@ module PugBot
     # @return [void]
     def private_message(m)
       nick = m.user.nick
-      m.reply I_AM_BOT @names.push(nick) unless @names.include?(nick)
+      m.reply I_AM_BOT and @names.push(nick) unless @names.include?(nick)
     end
 
     # When a user joins a channel, welcome them and if they are being tracked

@@ -1,6 +1,14 @@
+require "simplecov"
 require "codeclimate-test-reporter"
 
-CodeClimate::TestReporter.start
+SimpleCov.start CodeClimate::TestReporter.configuration.profile do
+  formatter SimpleCov::Formatter::MultiFormatter.new(
+    [
+      SimpleCov::Formatter::HTMLFormatter,
+      CodeClimate::TestReporter::Formatter
+    ]
+  )
+end
 
 require "cinch"
 require "pugbot"
@@ -79,6 +87,10 @@ class TestMessage < Cinch::Message
   end
 end
 
-def set_test_message(raw, user = "Test!test@network.com")
-  @message = TestMessage.new(":#{user} #{raw}", @bot)
+def set_test_message(raw, nick = "test")
+  @message = TestMessage.new(
+    ":#{nick}!#{nick}@network.com #{raw}",
+    @bot,
+    nick: nick
+  )
 end
