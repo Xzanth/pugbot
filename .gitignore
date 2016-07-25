@@ -3,3 +3,4 @@ config.yml
 doc
 .yardoc/
 Gemfile.lock
+coverage
