@@ -8,6 +8,7 @@ module PugBot
     # @return [void]
     def setup(*)
       @names = ["Q"]
+      @channel = config[:channel]
     end
 
     # Don't allow anyone else to change the channel topic, warn them with
@@ -27,14 +28,12 @@ module PugBot
     end
 
     # When a user joins a channel, welcome them and if they are being tracked
-    # cancel their countdown, if it is us the bot, then set the global variable
-    # $channel.
+    # cancel their countdown.
     # @return [void]
     def joined_channel(m)
       user = m.user
       user.rejoined if user.track
 
-      $channel = m.channel if user.nick == bot.nick
       user.notice format(WELCOME, m.channel)
     end
 

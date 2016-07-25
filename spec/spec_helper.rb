@@ -76,6 +76,7 @@ class TestMessage < Cinch::Message
     super(nil, bot)
     @message = msg
     @user = TestUser.new(opts.delete(:nick) { "test" }, bot)
+
     if opts.key?(:channel)
       @channel = Cinch::Channel.new(opts.delete(:channel), bot)
     end
@@ -85,10 +86,12 @@ class TestMessage < Cinch::Message
   end
 end
 
-def set_test_message(raw, nick = "test")
+def set_test_message(raw, nick = "test", channel = true)
+  opts = { nick: nick }
+  opts[:channel] = "#channel" if channel
   @message = TestMessage.new(
     ":#{nick}!#{nick}@network.com #{raw}",
     @bot,
-    nick: nick
+    opts
   )
 end

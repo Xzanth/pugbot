@@ -2,30 +2,34 @@ require "spec_helper"
 
 describe PugBot::BotPlugin do
   before(:each) do
-    @bot = TestBot.new
+    @bot = TestBot.new do
+      configure do |config|
+        config.plugins.options[PugBot::BotPlugin] = {
+          channel: "#channel"
+        }
+      end
+    end
     @plugin = PugBot::BotPlugin.new(@bot)
-    set_test_message("JOIN #channel", @bot.nick)
-    @plugin.joined_channel(@message)
     @plugin.setup
   end
 
   describe "private message" do
     it "should respond first time with info" do
-      set_test_message("PRIVMSG #{@bot.nick} :text")
+      set_test_message("PRIVMSG #{@bot.nick} :text", "test", false)
       expect(@message).to receive(:reply).with(PugBot::I_AM_BOT)
       @plugin.private_message(@message)
     end
 
     it "should not respond to Q" do
-      set_test_message("PRIVMSG #{@bot.nick} :text", "Q")
+      set_test_message("PRIVMSG #{@bot.nick} :text", "Q", false)
       expect(@message).not_to receive(:reply)
       @plugin.private_message(@message)
     end
 
     it "should not respond to same person twice" do
-      set_test_message("PRIVMSG #{@bot.nick} :text")
+      set_test_message("PRIVMSG #{@bot.nick} :text", "test", false)
       @plugin.private_message(@message)
-      set_test_message("PRIVMSG #{@bot.nick} :text")
+      set_test_message("PRIVMSG #{@bot.nick} :text", "test", false)
       expect(@message).not_to receive(:reply)
       @plugin.private_message(@message)
     end
@@ -46,6 +50,16 @@ describe PugBot::BotPlugin do
       set_test_message("TOPIC #channel :changed the topic", @bot.nick)
       expect(@message.user).not_to receive(:notice)
       @plugin.topic_changed(@message)
+    end
+  end
+
+  describe "join" do
+    it "should welcome people joining" do
+      set_test_message("JOIN #channel")
+      expect(@message.user).to(
+        receive(:notice).with(format(PugBot::WELCOME, "#channel"))
+      )
+      @plugin.joined_channel(@message)
     end
   end
 
