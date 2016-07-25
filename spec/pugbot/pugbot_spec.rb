@@ -17,21 +17,21 @@ describe PugBot::BotPlugin do
     it "should respond first time with info" do
       set_test_message("PRIVMSG #{@bot.nick} :text", "test", false)
       expect(@message).to receive(:reply).with(PugBot::I_AM_BOT)
-      @plugin.private_message(@message)
+      send_message(@message, :private)
     end
 
     it "should not respond to Q" do
       set_test_message("PRIVMSG #{@bot.nick} :text", "Q", false)
       expect(@message).not_to receive(:reply)
-      @plugin.private_message(@message)
+      send_message(@message, :private)
     end
 
     it "should not respond to same person twice" do
       set_test_message("PRIVMSG #{@bot.nick} :text", "test", false)
-      @plugin.private_message(@message)
+      send_message(@message, :private)
       set_test_message("PRIVMSG #{@bot.nick} :text", "test", false)
       expect(@message).not_to receive(:reply)
-      @plugin.private_message(@message)
+      send_message(@message, :private)
     end
   end
 
@@ -39,7 +39,7 @@ describe PugBot::BotPlugin do
     it "should not allow others to edit the topic" do
       set_test_message("TOPIC #channel :changed the topic")
       expect(@message.user).to receive(:notice).with(PugBot::EDIT_TOPIC)
-      @plugin.topic_changed(@message)
+      send_message(@message, :topic)
     end
 
     it "should change the topic back after being edited" do
@@ -49,7 +49,7 @@ describe PugBot::BotPlugin do
     it "should allow the bot to edit the topic" do
       set_test_message("TOPIC #channel :changed the topic", @bot.nick)
       expect(@message.user).not_to receive(:notice)
-      @plugin.topic_changed(@message)
+      send_message(@message, :topic)
     end
   end
 
@@ -59,7 +59,30 @@ describe PugBot::BotPlugin do
       expect(@message.user).to(
         receive(:notice).with(format(PugBot::WELCOME, "#channel"))
       )
-      @plugin.joined_channel(@message)
+      send_message(@message, :join)
+    end
+
+    it "should cancel timeouts for tracked users" do
+      # TODO
+    end
+  end
+
+  describe "left" do
+    it "should start countdown for tracked users" do
+      # TODO
+    end
+  end
+
+  describe "status" do
+    before(:each) do
+      $queue_list = PugBot::QueueList.new
+      $queue_list.new_queue("Test")
+    end
+
+    it "should tell me if I give invalid queue name" do
+      set_test_message("PRIVMSG #channel :!status invalid")
+      expect(@message.user).to receive(:notice).with(PugBot::QUEUE_NOT_FOUND)
+      send_message(@message)
     end
   end
 
@@ -70,7 +93,7 @@ describe PugBot::BotPlugin do
 
     it "should send back the help for using the pug bot" do
       expect(@message.user).to receive(:notice).with(PugBot::HELP)
-      @plugin.help(@message)
+      send_message(@message)
     end
   end
 end

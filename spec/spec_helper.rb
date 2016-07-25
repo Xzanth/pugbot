@@ -72,9 +72,7 @@ end
 
 class TestMessage < Cinch::Message
   def initialize(msg, bot, opts = {})
-    # override the message-parsing stuff
-    super(nil, bot)
-    @message = msg
+    super(msg, bot)
     @user = TestUser.new(opts.delete(:nick) { "test" }, bot)
 
     if opts.key?(:channel)
@@ -83,6 +81,10 @@ class TestMessage < Cinch::Message
 
     # set the message target
     @target = @channel || @user
+  end
+
+  def numeric_reply?
+    false
   end
 end
 
@@ -94,4 +96,27 @@ def set_test_message(raw, nick = "test", channel = true)
     @bot,
     opts
   )
+end
+
+def send_message(message, event = :message)
+  handlers = message.bot.handlers
+
+  # Deal with secondary event types
+  # See http://rubydoc.info/github/cinchrb/cinch/file/docs/events.md
+  events = [:catchall, event]
+
+  # If the message has a channel add the :channel event
+  events << :channel unless message.channel.nil?
+
+  # If the message is :private also trigger :message
+  events << :message if events.include?(:private)
+
+  # Dispatch each of the events to the handlers
+  events.each { |e| handlers.dispatch(e, message) }
+
+  # join all of the freaking threads, like seriously
+  # why is there no option to dispatch synchronously
+  handlers.each do |handler|
+    handler.thread_group.list.each(&:join)
+  end
 end
