@@ -2,6 +2,7 @@
 
 [![GitHub](https://img.shields.io/badge/github-Xzanth/pugbot-blue.svg)](http://github.com/Xzanth/pugbot)
 [![License](https://img.shields.io/badge/license-GPLv3-red.svg)](#license)
+[![Build Status](https://travis-ci.org/Xzanth/pugbot.svg)](https://travis-ci.org/Xzanth/pugbot)
 [![Docs](https://inch-ci.org/github/Xzanth/pugbot.svg?style=shields)](https://inch-ci.org/github/Xzanth/pugbot)
 [![Code Climate](https://img.shields.io/codeclimate/github/Xzanth/pugbot.svg)](https://codeclimate.com/github/Xzanth/pugbot)
 [![Dependency Status](https://img.shields.io/gemnasium/Xzanth/pugbot.svg)](https://gemnasium.com/Xzanth/pugbot)
