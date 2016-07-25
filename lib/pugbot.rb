@@ -1,6 +1,10 @@
-require_relative "pugbot/queue_list"
-require_relative "pugbot/queue"
-require_relative "pugbot/game"
+require "cinch"
+require "pugbot/queue_list"
+require "pugbot/queue"
+require "pugbot/game"
+require "pugbot/handlers"
+require "pugbot/messages"
+require "pugbot/cinch/user"
 
 module PugBot
   # The plugin to be imported into a cinch bot instance that actually interprets
