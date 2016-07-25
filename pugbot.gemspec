@@ -15,12 +15,13 @@ Gem::Specification.new do |gem|
   gem.add_development_dependency "rubocop"
   gem.add_development_dependency "yard"
   gem.add_development_dependency "rspec"
+  gem.add_development_dependency "rake"
 
   gem.files = [
     "LICENSE",
     "README.md",
     ".yardopts",
     ".rubocop.yml",
-    "lib/**/*"
+    "lib/**/*.rb"
   ]
 end
