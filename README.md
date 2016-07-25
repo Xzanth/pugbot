@@ -1,7 +1,7 @@
 # PUGBOT: A cinch plugin
 
 [![GitHub](https://img.shields.io/badge/github-Xzanth/pugbot-blue.svg)](http://github.com/Xzanth/pugbot)
-[![License](https://img.shields.io/badge/license-GPLv3-red.svg)](#license)
+[![License](https://img.shields.io/badge/license-GPLv3-blue.svg)](#license)
 [![Build Status](https://travis-ci.org/Xzanth/pugbot.svg)](https://travis-ci.org/Xzanth/pugbot)
 [![Code Climate](https://img.shields.io/codeclimate/github/Xzanth/pugbot.svg)](https://codeclimate.com/github/Xzanth/pugbot)
 [![Test Coverage](https://codeclimate.com/github/Xzanth/pugbot/badges/coverage.svg)](https://codeclimate.com/github/Xzanth/pugbot/coverage)
