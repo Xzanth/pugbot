@@ -9,7 +9,7 @@ module PugBot
     # @return [Array<Game>] All the games being played in this queue
     attr_reader :games
 
-    def intialize(name, max)
+    def initialize(name, max)
       @name = name
       @max = max
       @users = []
