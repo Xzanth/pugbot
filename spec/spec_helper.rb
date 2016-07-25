@@ -82,8 +82,6 @@ class TestMessage < Cinch::Message
 
     # set the message target
     @target = @channel || @user
-
-    @bot.user_list.find_ensured(nil, @user.nick, nil)
   end
 end
 
