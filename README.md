@@ -5,6 +5,7 @@
 [![Build Status](https://travis-ci.org/Xzanth/pugbot.svg)](https://travis-ci.org/Xzanth/pugbot)
 [![Docs](https://inch-ci.org/github/Xzanth/pugbot.svg?style=shields)](https://inch-ci.org/github/Xzanth/pugbot)
 [![Code Climate](https://img.shields.io/codeclimate/github/Xzanth/pugbot.svg)](https://codeclimate.com/github/Xzanth/pugbot)
+[![Test Coverage](https://codeclimate.com/github/Xzanth/pugbot/badges/coverage.svg)](https://codeclimate.com/github/Xzanth/pugbot/coverage)
 [![Dependency Status](https://img.shields.io/gemnasium/Xzanth/pugbot.svg)](https://gemnasium.com/Xzanth/pugbot)
 
 ## Synopsis
