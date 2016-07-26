@@ -12,6 +12,10 @@ module PugBot
     # @return [QueueList] The list of all the queues
     attr_reader :queue_list
 
+    # @param [QueueList] queue_list The list of queues this is being created in
+    # @param [String] name The name of this queue
+    # @param [Integer] max The number of players required to start a game
+    # @see QueueList.new_queue
     def initialize(queue_list, name, max)
       @name = name
       @max = max

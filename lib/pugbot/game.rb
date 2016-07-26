@@ -6,6 +6,9 @@ module PugBot
     # @return [Array<Cinch::User>] The list of users playing in this game
     attr_reader :users
 
+    # @param [Queue] queue The queue that this game has taken its players from
+    # @param [Array<Cinch::User>] users The users playing in this game
+    # @see Queue.ready
     def initialize(queue, users)
       @queue = queue
       @users = users

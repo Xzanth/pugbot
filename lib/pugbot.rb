@@ -6,6 +6,8 @@ require "pugbot/handlers"
 require "pugbot/messages"
 require "pugbot/cinch/user"
 
+# This module contains the pugbot plugin and all the associated classes needed
+# to organise, create and monitor games being run.
 module PugBot
   # The plugin to be imported into a cinch bot instance that actually interprets
   # the users input, tracks players and controls nearly all running of the pug
@@ -13,7 +15,10 @@ module PugBot
   class BotPlugin
     include Cinch::Plugin
 
+    # @return [QueueList] The list of queues for this plugin
     attr_reader :queue_list
+
+    # @return [Cinch::Channel] The channel that this plugin is being run in
     attr_reader :channel
 
     listen_to :connect, method: :setup

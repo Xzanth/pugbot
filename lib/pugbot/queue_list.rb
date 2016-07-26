@@ -13,6 +13,7 @@ module PugBot
     # @return [Cinch::Plugin] The plugin we are being created in
     attr_reader :plugin
 
+    # @param [Cinch::Plugin] The plugin we are being created in
     def initialize(plugin)
       @queues = []
       @default = nil
