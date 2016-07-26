@@ -11,6 +11,7 @@ describe PugBot::BotPlugin do
     end
     @plugin = PugBot::BotPlugin.new(@bot)
     @plugin.setup
+    @channel = @plugin.channel
   end
 
   describe "private message" do
@@ -70,6 +71,17 @@ describe PugBot::BotPlugin do
   describe "left" do
     it "should start countdown for tracked users" do
       # TODO
+    end
+  end
+
+  describe "!help" do
+    before(:each) do
+      set_test_message("PRIVMSG #channel :!help")
+    end
+
+    it "should send back the help for using the pug bot" do
+      expect(@message.user).to receive(:notice).with(PugBot::HELP)
+      send_message(@message)
     end
   end
 
@@ -145,13 +157,40 @@ describe PugBot::BotPlugin do
     end
   end
 
-  describe "!help" do
-    before(:each) do
-      set_test_message("PRIVMSG #channel :!help")
+  describe "start" do
+    it "shouldn't allow me to start if I'm not opped" do
+      set_test_message("PRIVMSG #channel :!start TestQ")
+      expect(@message.user).to receive(:notice).with(PugBot::ACCESS_DENIED)
+      send_message(@message)
     end
 
-    it "should send back the help for using the pug bot" do
-      expect(@message.user).to receive(:notice).with(PugBot::HELP)
+    it "should start default queue with supplied numbers" do
+      set_test_message("PRIVMSG #channel :!start TestQ 10")
+      user = @message.user
+      @message.channel.add_user(user, ["o"])
+      expect(@plugin.queue_list).to receive(:new_queue).with("TestQ", 10)
+      send_message(@message)
+    end
+
+    it "shouldn't start if there is a game by that name already" do
+      @queue1 = @plugin.queue_list.new_queue("TestQ")
+      set_test_message("PRIVMSG #channel :!start TestQ 10")
+      @message.channel.add_user(@message.user, ["o"])
+      expect(@message.user).to receive(:notice).with(PugBot::NAME_TAKEN)
+      send_message(@message)
+    end
+
+    it "shouldn't start with an odd number" do
+      set_test_message("PRIVMSG #channel :!start TestQ 11")
+      @message.channel.add_user(@message.user, ["o"])
+      expect(@message.user).to receive(:notice).with(PugBot::ODD_NUMBER)
+      send_message(@message)
+    end
+
+    it "shouldn't start with a number too large" do
+      set_test_message("PRIVMSG #channel :!start TestQ 40")
+      @message.channel.add_user(@message.user, ["o"])
+      expect(@message.user).to receive(:notice).with(PugBot::TOO_LARGE)
       send_message(@message)
     end
   end

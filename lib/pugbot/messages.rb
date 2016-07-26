@@ -18,7 +18,6 @@ module PugBot
   NAME_TAKEN = "A queue with that name already exists.".freeze
   ODD_NUMBER = "Games must have an even number of players.".freeze
   TOO_LARGE = "Games must have 32 or less players.".freeze
-  TOO_SMALL = "Games must have at least 6 players.".freeze
   HELP = "Supported commands are: !help, !status (all|gamename|num), !finish"\
   " (gamename|num), !add (all|gamename|num), !del (all|gamename|num), !subs"\
   " and !sub (name1) (name2). And for channel operators: !start gamename"\

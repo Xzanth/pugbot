@@ -94,11 +94,10 @@ module PugBot
     def start(m, name, num)
       num = num.to_i
       user = m.user
-      return user.notice ACCESS_DENIED unless m.channel.opped?(user.nick)
+      return user.notice ACCESS_DENIED unless m.channel.opped?(user)
       return user.notice NAME_TAKEN if @queue_list.find_queue_by_name(name)
       return user.notice ODD_NUMBER if num.odd?
       return user.notice TOO_LARGE if num > 32
-      return user.notice TOO_SMALL if num < 6
       @queue_list.new_queue(name, num)
     end
 
@@ -205,8 +204,7 @@ module PugBot
     def remove(m, name, arg)
       queue = @queue_list.find_queue_by_arg(arg)
       user = User(name)
-      nick = m.user.nick
-      return m.user.notice ACCESS_DENIED unless m.channel.opped?(nick)
+      return m.user.notice ACCESS_DENIED unless m.channel.opped?(user)
       return m.user.notice USERS_NOT_FOUND if user.nil?
       return remove_from_all(m, user) if arg.nil? || arg == "all"
       return m.user.notice QUEUE_NOT_FOUND if queue.nil?
@@ -255,7 +253,7 @@ module PugBot
     # @see QueueList.remove
     def end(m, arg)
       queue = @queue_list.find_queue_by_arg(arg)
-      return m.user.notice ACCESS_DENIED unless m.channel.opped?(m.user.nick)
+      return m.user.notice ACCESS_DENIED unless m.channel.opped?(m.user)
       return m.user.notice QUEUE_NOT_FOUND if queue.nil?
       queue.games.users.each { |user| user.status = :standby }
       @queue_list.remove(queue)
@@ -314,7 +312,7 @@ module PugBot
     # Quit the program immediately, can only be performed by operator.
     # @return [void]
     def shutdown(m)
-      return m.user.notice ACCESS_DENIED unless m.channel.opped?(m.user.nick)
+      return m.user.notice ACCESS_DENIED unless m.channel.opped?(m.user)
       m.reply "Bot shut down by #{m.user.nick}"
       abort "Program killed by #{m.user.nick}"
     end
