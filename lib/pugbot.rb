@@ -13,6 +13,9 @@ module PugBot
   class BotPlugin
     include Cinch::Plugin
 
+    attr_reader :queue_list
+    attr_reader :channel
+
     listen_to :connect, method: :setup
     listen_to :topic,   method: :topic_changed
     listen_to :private, method: :private_message

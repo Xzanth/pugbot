@@ -29,7 +29,7 @@ module PugBot
     # list of games essentially deleting the object.
     def timeout
       @users.each { |user| user.status = :standby }
-      $queue_list.each(&:check_waiters)
+      @queue.queue_list.each(&:check_waiters)
       @queue.finish(self)
     end
 
@@ -44,7 +44,7 @@ module PugBot
       @users.push(sub)
       sub.status = :ingame
       sub.track = true
-      $queue_list.remove_from_queues(sub)
+      @queue.queue_list.remove_from_queues(sub)
     end
 
     # List the current players of this game

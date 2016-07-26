@@ -8,7 +8,8 @@ module PugBot
     # @return [void]
     def setup(*)
       @names = ["Q"]
-      @channel = config[:channel]
+      @channel = Channel(config[:channel])
+      @queue_list = QueueList.new(self)
     end
 
     # Don't allow anyone else to change the channel topic, warn them with
@@ -64,11 +65,19 @@ module PugBot
     # @return [void]
     # @see Queue.print_long
     def status(m, arg)
-      queue = $queue_list.find_queue_by_arg(arg)
+      queue = @queue_list.find_queue_by_arg(arg)
       user = m.user
-      $queue_list.queues.each { |q| user.notice q.print_long } if arg == "all"
+      if arg == "all"
+        return @queue_list.queues.each { |q| user.notice q.print_long }
+      end
       return user.notice QUEUE_NOT_FOUND if queue.nil?
-      queue.print_long
+      user.notice queue.print_long
+      unless queue.games.empty?
+        queue.games.each.with_index do |g, i|
+          i += 1
+          user.notice "Game #{i} - #{g}"
+        end
+      end
     end
 
     ############################################################################
@@ -86,11 +95,11 @@ module PugBot
       num = num.to_i
       user = m.user
       return user.notice ACCESS_DENIED unless m.channel.opped?(user.nick)
-      return user.notice NAME_TAKEN if $queue_list.find_queue_by_name(name)
+      return user.notice NAME_TAKEN if @queue_list.find_queue_by_name(name)
       return user.notice ODD_NUMBER if num.odd?
       return user.notice TOO_LARGE if num > 32
       return user.notice TOO_SMALL if num < 6
-      $queue_list.new_queue(name, num)
+      @queue_list.new_queue(name, num)
     end
 
     ############################################################################
@@ -103,7 +112,7 @@ module PugBot
     # @see #try_join
     # @see #try_join_all
     def add(m, arg)
-      queue = $queue_list.find_queue_by_arg(arg)
+      queue = @queue_list.find_queue_by_arg(arg)
       user = m.user
       return try_join_all(user) if arg == "all"
       return user.notice QUEUE_NOT_FOUND if queue.nil?
@@ -138,7 +147,7 @@ module PugBot
     # @see Queue.add
     # @see Queue.add_wait
     def try_join_all(user)
-      queues = $queue_list.queues.select { |q| !q.listed_either?(user) }
+      queues = @queue_list.queues.select { |q| !q.listed_either?(user) }
       return user.notice YOU_ARE_PLAYING if playing?(user)
       return user.notice ALREADY_IN_ALL_QUEUES if queues.empty?
       if user.status == :finished
@@ -159,7 +168,7 @@ module PugBot
     # @return [void]
     # @see Queue.remove
     def del(m, arg)
-      queue = $queue_list.find_queue_by_arg(arg)
+      queue = @queue_list.find_queue_by_arg(arg)
       user = m.user
       return user.notice YOU_ARE_PLAYING if playing?(user)
       return del_from_all(m, user) if arg.nil? || arg == "all"
@@ -176,7 +185,7 @@ module PugBot
     # @see #del
     # @see Queue.remove
     def del_from_all(m, user)
-      queues = $queue_list.queues.select { |q| q.listed_either?(user) }
+      queues = @queue_list.queues.select { |q| q.listed_either?(user) }
       return user.notice YOU_NOT_IN_ANY_QUEUES if queues.empty?
       queues.each { |q| q.remove(user) }
       m.reply format(LEFT_ALL, user.nick)
@@ -194,7 +203,7 @@ module PugBot
     # @see #remove_from_all
     # @see #remove_from_queue
     def remove(m, name, arg)
-      queue = $queue_list.find_queue_by_arg(arg)
+      queue = @queue_list.find_queue_by_arg(arg)
       user = User(name)
       nick = m.user.nick
       return m.user.notice ACCESS_DENIED unless m.channel.opped?(nick)
@@ -229,7 +238,7 @@ module PugBot
     # @see #remove_from_queue
     # @see Queue.remove
     def remove_from_all(m, user)
-      any = !$queue_list.queues.all? do |q|
+      any = !@queue_list.queues.all? do |q|
         remove_from_queue(m, user, q) == :not_in_queue
       end
       m.user.notice format(NOT_IN_ANY_QUEUES, user.nick) unless any
@@ -245,11 +254,11 @@ module PugBot
     # @return [void]
     # @see QueueList.remove
     def end(m, arg)
-      queue = $queue_list.find_queue_by_arg(arg)
+      queue = @queue_list.find_queue_by_arg(arg)
       return m.user.notice ACCESS_DENIED unless m.channel.opped?(m.user.nick)
       return m.user.notice QUEUE_NOT_FOUND if queue.nil?
       queue.games.users.each { |user| user.status = :standby }
-      $queue_list.remove(queue)
+      @queue_list.remove(queue)
     end
 
     ############################################################################
@@ -261,7 +270,7 @@ module PugBot
     # @return [void]
     # @see Game.finish
     def finish(m, arg)
-      queue = $queue_list.find_queue_by_arg(arg)
+      queue = @queue_list.find_queue_by_arg(arg)
       return m.user.notice QUEUE_NOT_FOUND if queue.nil?
       queue.games.each(&:finish)
     end
@@ -295,8 +304,8 @@ module PugBot
     def swap(user1, user2)
       user2.set_status(:ingame)
       user1.set_status(:standby)
-      $queue_list.find_game_playing(user1).sub(user1, user2)
-      $queue_list.queues.each { |q| q.remove(user2) }
+      @queue_list.find_game_playing(user1).sub(user1, user2)
+      @queue_list.queues.each { |q| q.remove(user2) }
     end
 
     ############################################################################

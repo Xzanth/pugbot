@@ -75,14 +75,73 @@ describe PugBot::BotPlugin do
 
   describe "status" do
     before(:each) do
-      $queue_list = PugBot::QueueList.new
-      $queue_list.new_queue("Test")
+      @queue1 = @plugin.queue_list.new_queue("TestQ")
+      @queue2 = @plugin.queue_list.new_queue("TestQ2", 2)
     end
 
     it "should tell me if I give invalid queue name" do
       set_test_message("PRIVMSG #channel :!status invalid")
       expect(@message.user).to receive(:notice).with(PugBot::QUEUE_NOT_FOUND)
       send_message(@message)
+    end
+
+    it "should tell me if I give invalid number" do
+      set_test_message("PRIVMSG #channel :!status 3")
+      expect(@message.user).to receive(:notice).with(PugBot::QUEUE_NOT_FOUND)
+      send_message(@message)
+    end
+
+    it "should tell me about a queue if I give the name" do
+      set_test_message("PRIVMSG #channel :!status TestQ")
+      expect(@message.user).to receive(:notice).with("TestQ - [0/10]")
+      send_message(@message)
+    end
+
+    it "should tell me about a queue if I give the number" do
+      set_test_message("PRIVMSG #channel :!status 2")
+      expect(@message.user).to receive(:notice).with("TestQ2 - [0/2]")
+      send_message(@message)
+    end
+
+    it "should tell me about the default queue without any arguments" do
+      set_test_message("PRIVMSG #channel :!status")
+      expect(@message.user).to receive(:notice).with("TestQ - [0/10]")
+      send_message(@message)
+    end
+
+    it "should tell me about all queues with argument all" do
+      set_test_message("PRIVMSG #channel :!status all")
+      user = @message.user
+      allow(user).to receive(:notice)
+      send_message(@message)
+      expect(user).to have_received(:notice).exactly(2).times
+      ["TestQ - [0/10]", "TestQ2 - [0/2]"].each do |msg|
+        expect(user).to have_received(:notice).with(msg)
+      end
+    end
+
+    it "should tell me the players queued" do
+      set_test_message("PRIVMSG #channel :!status TestQ")
+      user = @message.user
+      @queue1.add(user)
+      expect(user).to receive(:notice).with("TestQ - [1/10]: #{user}")
+      send_message(@message)
+    end
+
+    it "should tell me about a game currently underway" do
+      set_test_message("PRIVMSG #channel :!status TestQ2")
+      user = @message.user
+      user2 = Cinch::User.new("nick2", @bot)
+      @queue2.add(user)
+      @queue2.add(user2)
+      allow(user).to receive(:notice)
+      send_message(@message)
+      expect(user).to have_received(:notice).exactly(2).times
+      msgs = [
+        "TestQ2 - IN GAME - [0/2]",
+        "Game 1 - Current players: test nick2"
+      ]
+      msgs.each { |msg| expect(user).to have_received(:notice).with(msg) }
     end
   end
 

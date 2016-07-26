@@ -9,12 +9,16 @@ module PugBot
     # @return [Array<Game>] All the games being played in this queue
     attr_reader :games
 
-    def initialize(name, max)
+    # @return [QueueList] The list of all the queues
+    attr_reader :queue_list
+
+    def initialize(queue_list, name, max)
       @name = name
       @max = max
       @users = []
       @wait = []
       @games = []
+      @queue_list = queue_list
     end
 
     # Join a queue, by testing if we can and then either adding,
@@ -60,6 +64,7 @@ module PugBot
     def add(user)
       @users.push(user)
       user.track = true
+      ready
     end
 
     # Test if a user is in the wait queue.
@@ -95,7 +100,7 @@ module PugBot
     def remove(user)
       @users.delete(user)
       @wait.delete(user)
-      user.track = false unless $queue_list.is_player_active(user)
+      user.track = false unless @queue_list.player_active?(user)
     end
 
     # Remove a game that has finished
@@ -107,23 +112,23 @@ module PugBot
     # Check if enough people are signed up to start a game and if they are
     # then start one, alerting the relevant channels.
     def ready
-      if users >= @max
-        ingame = users.take(@max)
-        game = Game.new(ingame)
+      if @users.length >= @max
+        ingame = @users.take(@max)
+        game = Game.new(self, ingame)
         @games.push(game)
         @users -= ingame
         ingame.each do |user|
           user.status = :ingame
-          $queue_list.remove_from_queues(user)
+          @queue_list.remove_from_queues(user)
         end
         text = "Game #{@name} - starting for #{ingame.join(' ')}"
-        $channel.send(text)
-        $slack_client.web_client.chat_postMessage(
-          channel: "#pugs",
-          text: "#{text} - sign up for the next on "\
-          "<http://webchat.quakenet.org/?channels=midair.pug|#midair.pug>",
-          as_user: true
-        )
+        @queue_list.plugin.channel.send(text)
+        # $slack_client.web_client.chat_postMessage(
+        #   channel: "#pugs",
+        #   text: "#{text} - sign up for the next on "\
+        #   "<http://webchat.quakenet.org/?channels=midair.pug|#midair.pug>",
+        #   as_user: true
+        # )
       end
     end
 
@@ -135,9 +140,9 @@ module PugBot
         finished.shuffle!
         @users += finished
         @wait -= finished
-        $channel.send("Users have been randomized into queue")
+        @channel.send("Users have been randomized into queue")
         ready
-        $queue_list.set_topic
+        @queue_list.set_topic
       end
     end
 
@@ -160,7 +165,7 @@ module PugBot
     # @return [String] The status of this queue and list of queued users
     def print_long
       text = print_short
-      text << ": #{@users.join(' ')}"
+      text << ": #{@users.join(' ')}" unless @users.empty?
       text
     end
 

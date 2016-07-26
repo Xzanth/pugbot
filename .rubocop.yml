@@ -11,7 +11,7 @@ Style/StringLiterals:
   EnforcedStyle: double_quotes
 
 Style/GlobalVars:
-  AllowedVariables: ['$timers', '$queue_list', '$channel', '$slack_client']
+  AllowedVariables: ['$timers', '$slack_client']
 
 Style/AndOr:
   EnforcedStyle: conditionals

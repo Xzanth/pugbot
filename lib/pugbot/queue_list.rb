@@ -10,19 +10,25 @@ module PugBot
     # @return [Queue] The default queue
     attr_accessor :default
 
-    def initialize
+    # @return [Cinch::Plugin] The plugin we are being created in
+    attr_reader :plugin
+
+    def initialize(plugin)
       @queues = []
       @default = nil
+      @plugin = plugin
     end
 
     # Create a new queue, make it the default if it is the only queue.
     # @param [String] name The name for this specific queue
     # @param [Integer] max The max number of players in this queue
+    # @return [Queue] The queue that has been created
     def new_queue(name, max = 10)
       max = 10 if max == 0
-      queue = Queue.new(name, max)
+      queue = Queue.new(self, name, max)
       @default = queue if @queues.empty?
       @queues.push(queue)
+      queue
     end
 
     # Remove a queue, if it is the default make the first queue on the list
@@ -93,7 +99,7 @@ module PugBot
       topic = @queues.map.with_index do |queue, index|
         "{ Game #{index + 1}: #{queue} }"
       end
-      $channel.topic = topic.join(" - ")
+      @plugin.channel.topic = topic.join(" - ")
     end
   end
 end

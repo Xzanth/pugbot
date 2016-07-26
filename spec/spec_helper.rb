@@ -26,6 +26,10 @@ class TestBot < Cinch::Bot
   def raw(command)
     @raw_log << command
   end
+
+  def mask
+    Cinch::Mask.new("Bot!bot@network.com")
+  end
 end
 
 class TestIRC
@@ -51,29 +55,10 @@ class TestNetwork
   end
 end
 
-class TestUser < Cinch::User
-  def send(text, notice = false)
-    text = text.to_s
-    split_start = @bot.config.message_split_start || ""
-    split_end   = @bot.config.message_split_end   || ""
-    command = notice ? "NOTICE" : "PRIVMSG"
-    # Don't want to call mask on bot and deal with syncables so added manually.
-    prefix = ":Bot!bot@network.com #{command} #{@name} :"
-
-    text.lines.map(&:chomp).each do |line|
-      splitted = split_message(line, prefix, split_start, split_end)
-
-      splitted[0, (@bot.config.max_messages || splitted.size)].each do |string|
-        @bot.irc.send("#{command} #{@name} :#{string}")
-      end
-    end
-  end
-end
-
 class TestMessage < Cinch::Message
   def initialize(msg, bot, opts = {})
     super(msg, bot)
-    @user = TestUser.new(opts.delete(:nick) { "test" }, bot)
+    @user = Cinch::User.new(opts.delete(:nick) { "test" }, bot)
 
     if opts.key?(:channel)
       @channel = Cinch::Channel.new(opts.delete(:channel), bot)
