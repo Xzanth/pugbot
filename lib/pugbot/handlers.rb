@@ -153,7 +153,6 @@ module PugBot
         user.notice FINISHED_IN_QUEUE
         queues.each { |q| q.add_wait(user) }
       else
-        queue.add(user)
         queues.each { |q| q.add(user) }
       end
     end

@@ -85,7 +85,7 @@ describe PugBot::BotPlugin do
     end
   end
 
-  describe "status" do
+  describe "!status" do
     before(:each) do
       @queue1 = @plugin.queue_list.new_queue("TestQ")
       @queue2 = @plugin.queue_list.new_queue("TestQ2", 2)
@@ -157,7 +157,7 @@ describe PugBot::BotPlugin do
     end
   end
 
-  describe "start" do
+  describe "!start" do
     it "shouldn't allow me to start if I'm not opped" do
       set_test_message("PRIVMSG #channel :!start TestQ")
       expect(@message.user).to receive(:notice).with(PugBot::ACCESS_DENIED)
@@ -191,6 +191,82 @@ describe PugBot::BotPlugin do
       set_test_message("PRIVMSG #channel :!start TestQ 40")
       @message.channel.add_user(@message.user, ["o"])
       expect(@message.user).to receive(:notice).with(PugBot::TOO_LARGE)
+      send_message(@message)
+    end
+  end
+
+  describe "!add" do
+    before(:each) do
+      @queue1 = @plugin.queue_list.new_queue("TestQ")
+      @queue2 = @plugin.queue_list.new_queue("TestQ2")
+    end
+
+    it "should join the default queue with no arguments" do
+      set_test_message("PRIVMSG #channel :!add")
+      user = @message.user
+      expect(@queue1).to receive(:add).with(user)
+      send_message(@message)
+    end
+
+    it "should join the game we give as an argument" do
+      set_test_message("PRIVMSG #channel :!add 2")
+      user = @message.user
+      expect(@queue2).to receive(:add).with(user)
+      send_message(@message)
+    end
+
+    it "should not accept an invalid argument" do
+      set_test_message("PRIVMSG #channel :!add invalid")
+      user = @message.user
+      expect(@queue1).not_to receive(:add)
+      expect(user).to receive(:notice).with(PugBot::QUEUE_NOT_FOUND)
+      send_message(@message)
+    end
+
+    it "should not join the same queue twice" do
+      set_test_message("PRIVMSG #channel :!add TestQ")
+      user = @message.user
+      @queue1.add(user)
+      expect(@queue1).not_to receive(:add)
+      expect(user).to receive(:notice).with(PugBot::ALREADY_IN_QUEUE)
+      send_message(@message)
+    end
+
+    it "should not join if we are playing a game" do
+      set_test_message("PRIVMSG #channel :!add TestQ")
+      user = @message.user
+      user.status = :ingame
+      expect(@queue1).not_to receive(:add)
+      expect(user).to receive(:notice).with(PugBot::YOU_ARE_PLAYING)
+      send_message(@message)
+    end
+
+    it "should tell us if we are already in all queues" do
+      set_test_message("PRIVMSG #channel :!add all")
+      user = @message.user
+      @queue1.add(user)
+      @queue2.add(user)
+      expect(@queue1).not_to receive(:add)
+      expect(@queue2).not_to receive(:add)
+      expect(user).to receive(:notice).with(PugBot::ALREADY_IN_ALL_QUEUES)
+      send_message(@message)
+    end
+
+    it "should try joining all queues when supplied with argument all" do
+      set_test_message("PRIVMSG #channel :!add all")
+      user = @message.user
+      expect(@queue1).to receive(:add).with(user)
+      expect(@queue2).to receive(:add).with(user)
+      send_message(@message)
+    end
+
+    it "should add to wait queue if we have just finished" do
+      set_test_message("PRIVMSG #channel :!add 1")
+      user = @message.user
+      user.status = :finished
+      expect(@queue1).not_to receive(:add).with(user)
+      expect(@queue1).to receive(:add_wait).with(user)
+      expect(user).to receive(:notice).with(PugBot::FINISHED_IN_QUEUE)
       send_message(@message)
     end
   end

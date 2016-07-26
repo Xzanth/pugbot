@@ -15,6 +15,9 @@ module PugBot
   YOU_ARE_PLAYING = "Cannot perform this action while you are playing a"\
   " game.".freeze
   ALREADY_IN_QUEUE = "You are already in this queue.".freeze
+  ALREADY_IN_ALL_QUEUES = "You are already in all queues.".freeze
+  FINISHED_IN_QUEUE = "You have just finished a game and will be added to this"\
+  " one 30s after the last ended.".freeze
   NAME_TAKEN = "A queue with that name already exists.".freeze
   ODD_NUMBER = "Games must have an even number of players.".freeze
   TOO_LARGE = "Games must have 32 or less players.".freeze
