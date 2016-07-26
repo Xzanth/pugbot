@@ -203,7 +203,7 @@ module PugBot
     def remove(m, name, arg)
       queue = @queue_list.find_queue_by_arg(arg)
       user = User(name)
-      return m.user.notice ACCESS_DENIED unless m.channel.opped?(user)
+      return m.user.notice ACCESS_DENIED unless m.channel.opped?(m.user)
       return m.user.notice USERS_NOT_FOUND if user.nil?
       return remove_from_all(m, user) if arg.nil? || arg == "all"
       return m.user.notice QUEUE_NOT_FOUND if queue.nil?
@@ -214,32 +214,28 @@ module PugBot
     # the remover and return :not_in_queue if the user is not in the queue.
     # @param [Cinch::User] user The user to be removed
     # @param [Queue] queue The queue to remove the user from
-    # @return [Symbol] :not_in_queue if the user is not in the queue
+    # @return [void]
     # @see #remove
     # @see Queue.remove
     def remove_from_queue(m, user, queue)
       unless queue.listed_either?(user)
         m.user.notice format(NOT_IN_QUEUE, user.nick)
-        return :not_in_queue
       end
       queue.remove(user)
       m.reply format(REMOVED, user.nick, queue.name, m.user.nick)
     end
 
-    # Remove a user from all queues, run {#remove_from_queue} on each queue in
-    # queuelist and if they all return :not_in_queue then the user wasn't in any
-    # queues and we should alert the remover.
+    # Remove a user from all queues, noticing if they are not in any queues and
+    # alerting the user if so.
     # @param [Cinch::User] user The user to be removed
     # @return [void]
     # @see #remove
-    # @see #remove_from_queue
     # @see Queue.remove
     def remove_from_all(m, user)
-      any = !@queue_list.queues.all? do |q|
-        remove_from_queue(m, user, q) == :not_in_queue
-      end
-      m.user.notice format(NOT_IN_ANY_QUEUES, user.nick) unless any
-      m.reply "#{user.nick} #{REMOVED} by #{nick}"
+      queues = @queue_list.queues.select { |q| q.listed_either?(user) }
+      return user.notice YOU_NOT_IN_ANY_QUEUES if queues.empty?
+      queues.each { |q| q.remove(user) }
+      m.reply format(REMOVED, user.nick, "all queues", m.user.nick)
     end
 
     ############################################################################

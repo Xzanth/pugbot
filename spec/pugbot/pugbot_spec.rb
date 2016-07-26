@@ -162,6 +162,7 @@ describe PugBot::BotPlugin do
       set_test_message("PRIVMSG #channel :!start TestQ")
       expect(@message.user).to receive(:notice).with(PugBot::ACCESS_DENIED)
       send_message(@message)
+      expect(@plugin.queue_list.queues).to be_empty
     end
 
     it "should start default queue with supplied numbers" do
@@ -232,7 +233,7 @@ describe PugBot::BotPlugin do
       send_message(@message)
     end
 
-    it "should not join if we are playing a game" do
+    it "should not join a game if we are playing a game" do
       set_test_message("PRIVMSG #channel :!add TestQ")
       user = @message.user
       user.status = :ingame
@@ -260,7 +261,7 @@ describe PugBot::BotPlugin do
       send_message(@message)
     end
 
-    it "should add to wait queue if we have just finished" do
+    it "should add to wait queue if we have just finished and try to join" do
       set_test_message("PRIVMSG #channel :!add 1")
       user = @message.user
       user.status = :finished
@@ -268,6 +269,117 @@ describe PugBot::BotPlugin do
       expect(@queue1).to receive(:add_wait).with(user)
       expect(user).to receive(:notice).with(PugBot::FINISHED_IN_QUEUE)
       send_message(@message)
+    end
+
+    it "should add to all wait queues if we have just finished and add all" do
+      set_test_message("PRIVMSG #channel :!add all")
+      user = @message.user
+      user.status = :finished
+      expect(@queue1).not_to receive(:add).with(user)
+      expect(@queue1).to receive(:add_wait).with(user)
+      expect(@queue2).not_to receive(:add).with(user)
+      expect(@queue2).to receive(:add_wait).with(user)
+      expect(user).to receive(:notice).with(PugBot::FINISHED_IN_QUEUE)
+      send_message(@message)
+    end
+  end
+
+  describe "!del" do
+    before(:each) do
+      @queue1 = @plugin.queue_list.new_queue("TestQ")
+      @queue2 = @plugin.queue_list.new_queue("TestQ2")
+    end
+
+    it "should delete from all games with no arguments" do
+      set_test_message("PRIVMSG #channel :!del")
+      user = @message.user
+      @queue1.add(user)
+      @queue2.add(user)
+      expect(@message).to receive(:reply).with(
+        format(PugBot::LEFT_ALL, user.nick)
+      )
+      send_message(@message)
+      expect(@queue1.users).to be_empty
+      expect(@queue2.users).to be_empty
+    end
+
+    it "should only delete from one game with an argument" do
+      set_test_message("PRIVMSG #channel :!del 2")
+      user = @message.user
+      @queue1.add(user)
+      @queue2.add(user)
+      expect(@message).to receive(:reply).with(
+        format(PugBot::LEFT, user.nick, @queue2.name)
+      )
+      send_message(@message)
+      expect(@queue1.users).to include(user)
+      expect(@queue2.users).to be_empty
+    end
+
+    it "should not let us delete if we are playing a game" do
+      set_test_message("PRIVMSG #channel :!del 1")
+      user = @message.user
+      @queue1.add(user)
+      user.status = :ingame
+      expect(user).to receive(:notice).with(PugBot::YOU_ARE_PLAYING)
+      send_message(@message)
+      expect(@queue1.users).to include(user)
+    end
+
+    it "should not accept an invalid argument" do
+      set_test_message("PRIVMSG #channel :!del 3")
+      user = @message.user
+      @queue1.add(user)
+      @queue2.add(user)
+      expect(user).to receive(:notice).with(PugBot::QUEUE_NOT_FOUND)
+      send_message(@message)
+      expect(@queue1.users).to include(user)
+      expect(@queue2.users).to include(user)
+    end
+
+    it "should tell us if we are not in the specified queue" do
+      set_test_message("PRIVMSG #channel :!del 2")
+      user = @message.user
+      @queue1.add(user)
+      expect(user).to receive(:notice).with(PugBot::YOU_NOT_IN_QUEUE)
+      send_message(@message)
+      expect(@queue1.users).to include(user)
+      expect(@queue2.users).not_to include(user)
+    end
+
+    it "should tell us if we are not in any queues on del all" do
+      set_test_message("PRIVMSG #channel :!del")
+      user = @message.user
+      expect(user).to receive(:notice).with(PugBot::YOU_NOT_IN_ANY_QUEUES)
+      send_message(@message)
+    end
+  end
+
+  describe "!remove" do
+    before(:each) do
+      @queue1 = @plugin.queue_list.new_queue("TestQ")
+      @queue2 = @plugin.queue_list.new_queue("TestQ2")
+    end
+
+    it "shouldn't allow me to remove if I'm not opped" do
+      set_test_message("PRIVMSG #channel :!remove Ben TestQ")
+      expect(@message.user).to receive(:notice).with(PugBot::ACCESS_DENIED)
+      send_message(@message)
+    end
+
+    it "should remove a user from all if supplied with no arguments" do
+      user2 = Cinch::User.new("test2", @bot)
+      @queue1.add(user2)
+      @queue2.add(user2)
+      set_test_message("PRIVMSG #channel :!remove test2")
+      user = @message.user
+      @message.channel.add_user(user, ["o"])
+      expect(@message).to receive(:reply).with(
+        format(PugBot::REMOVED, user2.nick, "all queues", user.nick)
+      )
+      send_message(@message)
+      expect(@queue1.users).to be_empty
+      expect(@queue2.users).to be_empty
     end
   end
 end

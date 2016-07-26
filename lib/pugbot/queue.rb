@@ -12,6 +12,9 @@ module PugBot
     # @return [QueueList] The list of all the queues
     attr_reader :queue_list
 
+    # @return [Array<Cinch::User>] The list of all the users in the queue
+    attr_reader :users
+
     # Create a new queue in a queue list, should never be called directly,
     # should always be called with QueueList.new_queue
     # @param [QueueList] queue_list The list of queues this is being created in
