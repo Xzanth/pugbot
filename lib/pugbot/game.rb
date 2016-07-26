@@ -6,6 +6,8 @@ module PugBot
     # @return [Array<Cinch::User>] The list of users playing in this game
     attr_reader :users
 
+    # A game that currently exists, with users playing in it. Should not be
+    # called directly, should automatically be called by Queue.ready
     # @param [Queue] queue The queue that this game has taken its players from
     # @param [Array<Cinch::User>] users The users playing in this game
     # @see Queue.ready

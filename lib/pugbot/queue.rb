@@ -12,6 +12,8 @@ module PugBot
     # @return [QueueList] The list of all the queues
     attr_reader :queue_list
 
+    # Create a new queue in a queue list, should never be called directly,
+    # should always be called with QueueList.new_queue
     # @param [QueueList] queue_list The list of queues this is being created in
     # @param [String] name The name of this queue
     # @param [Integer] max The number of players required to start a game
