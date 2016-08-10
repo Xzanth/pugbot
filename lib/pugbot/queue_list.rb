@@ -56,9 +56,13 @@ module PugBot
 
     # Find the queue a specific user is playing.
     # @param [Cinch::User] user The user we want to know about
-    # @return [Queue] The queue the specified user is playing in
-    def find_queue_playing(user)
-      @queues.select { |queue| queue.in_queue.include?(user) }[0]
+    # @return [Game] The game the specified user is playing in
+    def find_game_playing(user)
+      @queues.each do |queue|
+        game = queue.games.find { |g| g.users.include?(user) }
+        return game unless game.nil?
+      end
+      nil
     end
 
     # Remove a user from all queues they are in.
@@ -73,6 +77,15 @@ module PugBot
     def player_active?(user)
       @queues.any? do |queue|
         queue.listed?(user) or queue.listed_wait?(user)
+      end
+    end
+
+    # Is the specified user playing in any games.
+    # @param [Cinch::User] user The user we want to know about
+    # @return [Boolean] Whether they are playing or not
+    def playing?(user)
+      @queues.any? do |queue|
+        queue.games.any? { |game| game.users.include?(user) }
       end
     end
 

@@ -12,7 +12,10 @@ describe PugBot::BotPlugin do
     @plugin = PugBot::BotPlugin.new(@bot)
     @plugin.setup
     @channel = @plugin.channel
+    @user1 = Cinch::User.new("test1", @bot)
     @user2 = Cinch::User.new("test2", @bot)
+    @user3 = Cinch::User.new("test3", @bot)
+    @user4 = Cinch::User.new("test4", @bot)
   end
 
   describe "private message" do
@@ -369,13 +372,13 @@ describe PugBot::BotPlugin do
     end
 
     it "should remove a user from all if supplied with no arguments" do
-      @queue1.add(@user2)
-      @queue2.add(@user2)
-      set_test_message("PRIVMSG #channel :!remove test2")
+      @queue1.add(@user1)
+      @queue2.add(@user1)
+      set_test_message("PRIVMSG #channel :!remove test1")
       user = @message.user
       @message.channel.add_user(user, ["o"])
       expect(@message).to receive(:reply).with(
-        format(PugBot::REMOVED, @user2.nick, "all queues", user.nick)
+        format(PugBot::REMOVED, @user1.nick, "all queues", user.nick)
       )
       send_message(@message)
       expect(@queue1.users).to be_empty
@@ -383,13 +386,13 @@ describe PugBot::BotPlugin do
     end
 
     it "should remove a user from a specified queue" do
-      @queue1.add(@user2)
-      @queue2.add(@user2)
-      set_test_message("PRIVMSG #channel :!remove test2 TestQTwo")
+      @queue1.add(@user1)
+      @queue2.add(@user1)
+      set_test_message("PRIVMSG #channel :!remove test1 TestQTwo")
       user = @message.user
       @message.channel.add_user(user, ["o"])
       expect(@message).to receive(:reply).with(
-        format(PugBot::REMOVED, @user2.nick, "TestQTwo", user.nick)
+        format(PugBot::REMOVED, @user1.nick, "TestQTwo", user.nick)
       )
       send_message(@message)
       expect(@queue1.users).to_not be_empty
@@ -397,12 +400,12 @@ describe PugBot::BotPlugin do
     end
 
     it "should let you know if they're not in the specified queue" do
-      @queue2.add(@user2)
-      set_test_message("PRIVMSG #channel :!remove test2 TestQ")
+      @queue2.add(@user1)
+      set_test_message("PRIVMSG #channel :!remove test1 TestQ")
       user = @message.user
       @message.channel.add_user(user, ["o"])
       expect(@message.user).to receive(:notice).with(
-        format(PugBot::NOT_IN_QUEUE, @user2.nick)
+        format(PugBot::NOT_IN_QUEUE, @user1.nick)
       )
       send_message(@message)
       expect(@queue1.users).to be_empty
@@ -413,6 +416,8 @@ describe PugBot::BotPlugin do
   describe "!end" do
     before(:each) do
       @queue1 = @plugin.queue_list.new_queue("TestQ", 2)
+      @queue1.add(@user1)
+      @queue1.add(@user2)
     end
 
     it "shouldn't allow non-ops to end queue" do
@@ -424,18 +429,128 @@ describe PugBot::BotPlugin do
     it "should remove a specific queue" do
       set_test_message("PRIVMSG #channel :!end 1")
       user = @message.user
-      @queue1.add(user)
-      @queue1.add(@user2)
-      players = []
-      @queue1.games.each { |game| players += game.users }
-      players.flatten!
       @message.channel.add_user(user, ["o"])
       expect(@message).to receive(:reply).with(
         format(PugBot::ENDED, "TestQ", user.nick)
       )
       send_message(@message)
       expect(@plugin.queue_list.queues).to_not include(@queue1)
+    end
+
+    it "should reset all players to standby on ending a queue" do
+      players = []
+      @queue1.games.each { |game| players += game.users }
+      players.flatten!
+      set_test_message("PRIVMSG #channel :!end 1")
+      user = @message.user
+      @message.channel.add_user(user, ["o"])
+      send_message(@message)
       expect(players).to all(satisfy { |player| player.status == :standby })
+    end
+  end
+
+  describe "!finish" do
+    before(:each) do
+      @queue1 = @plugin.queue_list.new_queue("TestQ", 2)
+      @queue1.add(@user1)
+      @queue1.add(@user2)
+    end
+
+    it "should end a specified game" do
+      set_test_message("PRIVMSG #channel :!finish 1")
+      send_message(@message)
+      expect(@queue1.games).to all(satisfy { |game| game.status == :finished })
+    end
+
+    it "should set all players to finished when they finish" do
+      players = []
+      @queue1.games.each { |game| players += game.users }
+      players.flatten!
+      set_test_message("PRIVMSG #channel :!finish 1")
+      send_message(@message)
+      expect(players).to all(satisfy { |player| player.status == :finished })
+    end
+  end
+
+  describe "!sub" do
+    before(:each) do
+      @queue1 = @plugin.queue_list.new_queue("TestQ", 2)
+      @queue2 = @plugin.queue_list.new_queue("TestQTwo", 2)
+      @queue1.add(@user1)
+      @queue1.add(@user2)
+      @queue2.add(@user3)
+    end
+
+    it "should sub a playing user with one not playing" do
+      set_test_message("PRIVMSG #channel :!sub test1 test3")
+      expect(@message).to receive(:reply).with(
+        format(PugBot::SUBBED, @user1.nick, @user3.nick, @message.user.nick)
+      )
+      send_message(@message)
+      expect(@queue1.games[0].users).to_not include(@user1)
+      expect(@queue1.games[0].users).to include(@user3)
+    end
+
+    it "should remove a sub from any queues they already in" do
+      set_test_message("PRIVMSG #channel :!sub test1 test3")
+      send_message(@message)
+      expect(@queue2.users).to_not include(@user3)
+    end
+
+    it "should remove a sub from any queues they already in" do
+      set_test_message("PRIVMSG #channel :!sub test1 test3")
+      send_message(@message)
+      expect(@queue2.users).to_not include(@user3)
+    end
+
+    it "should not allow someone already playing a game to sub" do
+      @queue2.add(@user4)
+      set_test_message("PRIVMSG #channel :!sub test3 test1")
+      expect(@message.user).to receive(:notice).with(
+        format(PugBot::ALREADY_PLAYING, "test1")
+      )
+      send_message(@message)
+      expect(@queue2.games[0].users).to_not include(@user1)
+      expect(@queue2.games[0].users).to include(@user3)
+    end
+
+    it "should inform if the player to replace is not in a game" do
+      set_test_message("PRIVMSG #channel :!sub test4 test1")
+      expect(@message.user).to receive(:notice).with(
+        format(PugBot::NOT_PLAYING, "test4")
+      )
+      send_message(@message)
+    end
+
+    # it "should inform if either specified user can not be found" do
+    #   puts "NOT FOUND"
+    #   set_test_message("PRIVMSG #channel :!sub aesitonao test1")
+    #   expect(@message.user).to receive(:notice).with(PugBot::USERS_NOT_FOUND)
+    #   send_message(@message)
+    #   set_test_message("PRIVMSG #channel :!sub test1 test5")
+    #   expect(@message.user).to receive(:notice).with(PugBot::USERS_NOT_FOUND)
+    #   send_message(@message)
+    #   set_test_message("PRIVMSG #channel :!sub test6 test5")
+    #   expect(@message.user).to receive(:notice).with(PugBot::USERS_NOT_FOUND)
+    #   send_message(@message)
+    # end
+  end
+
+  describe "!shutdown" do
+    it "shouldn't allow non-ops to shutdown" do
+      set_test_message("PRIVMSG #channel :!shutdown")
+      expect(@message.user).to receive(:notice).with(PugBot::ACCESS_DENIED)
+      send_message(@message)
+    end
+
+    it "should exit" do
+      set_test_message("PRIVMSG #channel :!shutdown")
+      user = @message.user
+      @message.channel.add_user(user, ["o"])
+      output = format(PugBot::KILLED, user.nick)
+      expect(@plugin).to receive(:abort).with(output)
+      expect(@message).to receive(:reply).with(output)
+      send_message(@message)
     end
   end
 end

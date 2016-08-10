@@ -6,6 +6,9 @@ module PugBot
     # @return [Array<Cinch::User>] The list of users playing in this game
     attr_reader :users
 
+    # @return [Symbol] The status of the game, either ingame or finished
+    attr_reader :status
+
     # A game that currently exists, with users playing in it. Should not be
     # called directly, should automatically be called by Queue.ready
     # @param [Queue] queue The queue that this game has taken its players from
@@ -14,6 +17,7 @@ module PugBot
     def initialize(queue, users)
       @queue = queue
       @users = users
+      @status = :ingame
     end
 
     # Ran when the game is manually finished, change the state of all users
@@ -25,6 +29,7 @@ module PugBot
         user.status = :finished
         user.track = false
       end
+      @status = :finished
       $timers.after(30) { timeout }
     end
 
@@ -55,7 +60,11 @@ module PugBot
     # List the current players of this game
     # @return [String] A list of all the users
     def to_s
-      "Current players: #{@users.join(' ')}"
+      if @status == :ingame
+        "Current players: #{@users.join(' ')}"
+      else
+        "Just finished: #{@users.join(' ')}"
+      end
     end
   end
 end

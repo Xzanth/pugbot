@@ -283,11 +283,12 @@ module PugBot
     def sub(m, user, sub)
       user_u = User(user)
       sub_u = User(sub)
+      user_game = @queue_list.find_game_playing(user_u)
+      sub_game = @queue_list.find_game_playing(sub_u)
       return m.user.notice USERS_NOT_FOUND if user_u.nil? || sub_u.nil?
-      return m.user.notice format(NOT_PLAYING, user) unless playing?(user)
-      return m.user.notice format(ALREADY_PLAYING, sub) if playing?(sub)
-      swap(user_u, sub_u)
-      m.reply format(SUBBED, user, sub, m.user.nick)
+      return m.user.notice format(NOT_PLAYING, user) if user_game.nil?
+      return m.user.notice format(ALREADY_PLAYING, sub) unless sub_game.nil?
+      swap(m, user_u, sub_u, user_game)
     end
 
     # Swap too users, one playing and one not.
@@ -297,11 +298,11 @@ module PugBot
     # @see #sub
     # @see Queue.sub
     # @see Queue.remove
-    def swap(user1, user2)
-      user2.set_status(:ingame)
-      user1.set_status(:standby)
-      @queue_list.find_game_playing(user1).sub(user1, user2)
-      @queue_list.queues.each { |q| q.remove(user2) }
+    def swap(m, user1, user2, user_game)
+      user2.status = :ingame
+      user1.status = :standby
+      user_game.sub(user1, user2)
+      m.reply format(SUBBED, user1.nick, user2.nick, m.user.nick)
     end
 
     ############################################################################
@@ -311,8 +312,8 @@ module PugBot
     # @return [void]
     def shutdown(m)
       return m.user.notice ACCESS_DENIED unless m.channel.opped?(m.user)
-      m.reply "Bot shut down by #{m.user.nick}"
-      abort "Program killed by #{m.user.nick}"
+      m.reply format(KILLED, m.user.nick)
+      abort format(KILLED, m.user.nick)
     end
 
     ############################################################################

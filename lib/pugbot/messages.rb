@@ -31,4 +31,5 @@ module PugBot
   " Xzanth.".freeze
   WELCOME = "Welcome to %s - sign up for games by typing '!add"\
   " nameofgame' and remove yourself from queues with '!del'.".freeze
+  KILLED = "Bot shut down by %s!".freeze
 end
