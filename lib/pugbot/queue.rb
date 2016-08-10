@@ -32,15 +32,7 @@ module PugBot
 
     # Removed method join
 
-    # Leave a queue, by testing if we can then removing ourselves.
-    # @param [Cinch::User] user The user to try joining with
-    # @return [Symbol] The status of our attempt to leave
-    def leave(user)
-      return :already_playing if ingame?(user)
-      return :not_queued unless listed?(user)
-      remove(user)
-      :removed
-    end
+    # Removed method leave
 
     # Test if a user is in this queue.
     # @param [Cinch::User] user The user to test for
