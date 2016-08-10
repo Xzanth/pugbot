@@ -30,26 +30,7 @@ module PugBot
       @queue_list = queue_list
     end
 
-    # Join a queue, by testing if we can and then either adding,
-    # add_waiting. Returns the status of the function so that the user can
-    # be notified.
-    # @param [Cinch::User] user The user to try joining with
-    # @return [Symbol] The status of our attempt to join
-    def join(user)
-      return :already_queued  if listed?(user)
-      return :already_playing if ingame?(user)
-      return :already_waiting if listed_wait?(user)
-      return :ingame          if user.status == :ingame
-
-      if user.status == :finished
-        add_wait(user)
-        return :added_wait
-      else
-        add(user)
-        ready
-        return :added
-      end
-    end
+    # Removed method join
 
     # Leave a queue, by testing if we can then removing ourselves.
     # @param [Cinch::User] user The user to try joining with
