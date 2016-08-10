@@ -32,7 +32,7 @@ module PugBot
     match(/start ([a-zA-Z]+)\s?(\d+)?$/,  method: :start)
     match(/add\s?(\d+|\w+)?$/,            method: :add)
     match(/del\s?(\d+|\w+)?$/,            method: :del)
-    match(/remove (.+)\s?(\d+|\w+)?$/,    method: :remove)
+    match(/remove (\S+)\s?(\d+|\w+)?$/,   method: :remove)
     match(/end\s?(\d+|\w+)?$/,            method: :end)
     match(/finish\s?(\d+|\w+)?$/,         method: :finish)
     match(/sub (.+) (.+)$/,               method: :sub)

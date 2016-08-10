@@ -250,8 +250,11 @@ module PugBot
       queue = @queue_list.find_queue_by_arg(arg)
       return m.user.notice ACCESS_DENIED unless m.channel.opped?(m.user)
       return m.user.notice QUEUE_NOT_FOUND if queue.nil?
-      queue.games.users.each { |user| user.status = :standby }
-      @queue_list.remove(queue)
+      m.reply format(ENDED, queue.name, m.user)
+      queue.games.each do |game|
+        game.users.each { |user| user.status = :standby }
+      end
+      @queue_list.remove_queue(queue)
     end
 
     ############################################################################

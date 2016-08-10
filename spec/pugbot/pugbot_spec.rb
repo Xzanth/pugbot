@@ -12,6 +12,7 @@ describe PugBot::BotPlugin do
     @plugin = PugBot::BotPlugin.new(@bot)
     @plugin.setup
     @channel = @plugin.channel
+    @user2 = Cinch::User.new("test2", @bot)
   end
 
   describe "private message" do
@@ -358,7 +359,7 @@ describe PugBot::BotPlugin do
   describe "!remove" do
     before(:each) do
       @queue1 = @plugin.queue_list.new_queue("TestQ")
-      @queue2 = @plugin.queue_list.new_queue("TestQ2")
+      @queue2 = @plugin.queue_list.new_queue("TestQTwo")
     end
 
     it "shouldn't allow me to remove if I'm not opped" do
@@ -368,18 +369,73 @@ describe PugBot::BotPlugin do
     end
 
     it "should remove a user from all if supplied with no arguments" do
-      user2 = Cinch::User.new("test2", @bot)
-      @queue1.add(user2)
-      @queue2.add(user2)
+      @queue1.add(@user2)
+      @queue2.add(@user2)
       set_test_message("PRIVMSG #channel :!remove test2")
       user = @message.user
       @message.channel.add_user(user, ["o"])
       expect(@message).to receive(:reply).with(
-        format(PugBot::REMOVED, user2.nick, "all queues", user.nick)
+        format(PugBot::REMOVED, @user2.nick, "all queues", user.nick)
       )
       send_message(@message)
       expect(@queue1.users).to be_empty
       expect(@queue2.users).to be_empty
+    end
+
+    it "should remove a user from a specified queue" do
+      @queue1.add(@user2)
+      @queue2.add(@user2)
+      set_test_message("PRIVMSG #channel :!remove test2 TestQTwo")
+      user = @message.user
+      @message.channel.add_user(user, ["o"])
+      expect(@message).to receive(:reply).with(
+        format(PugBot::REMOVED, @user2.nick, "TestQTwo", user.nick)
+      )
+      send_message(@message)
+      expect(@queue1.users).to_not be_empty
+      expect(@queue2.users).to be_empty
+    end
+
+    it "should let you know if they're not in the specified queue" do
+      @queue2.add(@user2)
+      set_test_message("PRIVMSG #channel :!remove test2 TestQ")
+      user = @message.user
+      @message.channel.add_user(user, ["o"])
+      expect(@message.user).to receive(:notice).with(
+        format(PugBot::NOT_IN_QUEUE, @user2.nick)
+      )
+      send_message(@message)
+      expect(@queue1.users).to be_empty
+      expect(@queue2.users).to_not be_empty
+    end
+  end
+
+  describe "!end" do
+    before(:each) do
+      @queue1 = @plugin.queue_list.new_queue("TestQ", 2)
+    end
+
+    it "shouldn't allow non-ops to end queue" do
+      set_test_message("PRIVMSG #channel :!end 1")
+      expect(@message.user).to receive(:notice).with(PugBot::ACCESS_DENIED)
+      send_message(@message)
+    end
+
+    it "should remove a specific queue" do
+      set_test_message("PRIVMSG #channel :!end 1")
+      user = @message.user
+      @queue1.add(user)
+      @queue1.add(@user2)
+      players = []
+      @queue1.games.each { |game| players += game.users }
+      players.flatten!
+      @message.channel.add_user(user, ["o"])
+      expect(@message).to receive(:reply).with(
+        format(PugBot::ENDED, "TestQ", user.nick)
+      )
+      send_message(@message)
+      expect(@plugin.queue_list.queues).to_not include(@queue1)
+      expect(players).to all(satisfy { |player| player.status == :standby })
     end
   end
 end

@@ -26,7 +26,7 @@ module PugBot
     # @param [Integer] max The max number of players in this queue
     # @return [Queue] The queue that has been created
     def new_queue(name, max = 10)
-      max = 10 if max == 0
+      max = 10 if max.zero?
       queue = Queue.new(self, name, max)
       @default = queue if @queues.empty?
       @queues.push(queue)

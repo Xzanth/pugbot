@@ -10,6 +10,7 @@ module PugBot
   YOU_NOT_IN_ANY_QUEUES = "You are not in any queues.".freeze
   REMOVED = "%s has been removed from %s by %s.".freeze
   SUBBED = "%s has been subbed with %s by %s.".freeze
+  ENDED = "%s has been ended by %s".freeze
   LEFT = "%s has abandoned %s.".freeze
   LEFT_ALL = "%s has abandoned all queues.".freeze
   YOU_ARE_PLAYING = "Cannot perform this action while you are playing a"\
