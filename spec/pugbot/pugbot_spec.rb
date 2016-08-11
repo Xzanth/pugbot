@@ -452,23 +452,32 @@ describe PugBot::BotPlugin do
   describe "!finish" do
     before(:each) do
       @queue1 = @plugin.queue_list.new_queue("TestQ", 2)
-      @queue1.add(@user1)
-      @queue1.add(@user2)
     end
 
     it "should end a specified game" do
+      @queue1.add(@user1)
+      @queue1.add(@user2)
       set_test_message("PRIVMSG #channel :!finish 1")
       send_message(@message)
       expect(@queue1.games).to all(satisfy { |game| game.status == :finished })
     end
 
     it "should set all players to finished when they finish" do
+      @queue1.add(@user1)
+      @queue1.add(@user2)
       players = []
       @queue1.games.each { |game| players += game.users }
       players.flatten!
       set_test_message("PRIVMSG #channel :!finish 1")
       send_message(@message)
       expect(players).to all(satisfy { |player| player.status == :finished })
+    end
+
+    it "should inform if there is no game for specified queue" do
+      @queue1.add(@user1)
+      set_test_message("PRIVMSG #channel :!finish 1")
+      expect(@message.user).to receive(:notice).with(PugBot::NO_GAME)
+      send_message(@message)
     end
   end
 

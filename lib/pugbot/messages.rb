@@ -8,6 +8,7 @@ module PugBot
   YOU_NOT_IN_QUEUE = "You are not in this queue.".freeze
   NOT_IN_ANY_QUEUES = "%s is not in any queues.".freeze
   YOU_NOT_IN_ANY_QUEUES = "You are not in any queues.".freeze
+  NO_GAME = "No game found for this queue.".freeze
   REMOVED = "%s has been removed from %s by %s.".freeze
   SUBBED = "%s has been subbed with %s by %s.".freeze
   ENDED = "%s has been ended by %s".freeze

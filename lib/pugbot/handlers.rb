@@ -20,6 +20,13 @@ module PugBot
       m.user.notice EDIT_TOPIC
     end
 
+    def update_topic
+      topic = @queue_list.queues.map.with_index do |queue, index|
+        "{ Game #{index + 1}: #{queue} }"
+      end
+      @channel.topic = topic.join(" - ")
+    end
+
     # Inform anyone we haven't informed previously that we are a bot when they
     # private message us.
     # @return [void]
@@ -99,6 +106,7 @@ module PugBot
       return user.notice ODD_NUMBER if num.odd?
       return user.notice TOO_LARGE if num > 32
       @queue_list.new_queue(name, num)
+      update_topic
     end
 
     ############################################################################
@@ -117,6 +125,7 @@ module PugBot
       return user.notice QUEUE_NOT_FOUND if queue.nil?
       return user.notice ALREADY_IN_QUEUE if queue.listed_either?(user)
       try_join(user, queue)
+      update_topic
     end
 
     # Try joining a queue, fail if already playing. If have just finished only
@@ -174,6 +183,7 @@ module PugBot
       return user.notice YOU_NOT_IN_QUEUE unless queue.listed_either?(user)
       m.reply format(LEFT, user.nick, queue.name)
       queue.remove(user)
+      update_topic
     end
 
     # Delete a user from all the queues they are queued in, noticing them if
@@ -208,6 +218,7 @@ module PugBot
       return remove_from_all(m, user) if arg.nil? || arg == "all"
       return m.user.notice QUEUE_NOT_FOUND if queue.nil?
       remove_from_queue(m, user, queue)
+      update_topic
     end
 
     # Remove a user from a specified queue and reply to the channel, or notice
@@ -255,6 +266,7 @@ module PugBot
         game.users.each { |user| user.status = :standby }
       end
       @queue_list.remove_queue(queue)
+      update_topic
     end
 
     ############################################################################
@@ -268,7 +280,9 @@ module PugBot
     def finish(m, arg)
       queue = @queue_list.find_queue_by_arg(arg)
       return m.user.notice QUEUE_NOT_FOUND if queue.nil?
+      return m.user.notice NO_GAME if queue.games.empty?
       queue.games.each(&:finish)
+      update_topic
     end
 
     ############################################################################
@@ -289,6 +303,7 @@ module PugBot
       return m.user.notice format(NOT_PLAYING, user) if user_game.nil?
       return m.user.notice format(ALREADY_PLAYING, sub) unless sub_game.nil?
       swap(m, user_u, sub_u, user_game)
+      update_topic
     end
 
     # Swap too users, one playing and one not.
