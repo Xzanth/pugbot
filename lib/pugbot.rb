@@ -29,13 +29,13 @@ module PugBot
     listen_to :leaving, method: :left_channel
 
     match(/help$/,                      method: :help)
-    match(/status\s?(\d+|\w+)?$/,       method: :status)
+    match(/status\s?(\S+)?$/,           method: :status)
     match(/start (\S+)\s?(\d+)?$/,      method: :start)
-    match(/add\s?(\d+|\w+)?$/,          method: :add)
-    match(/del\s?(\d+|\w+)?$/,          method: :del)
-    match(/remove (\S+)\s?(\d+|\w+)?$/, method: :remove)
-    match(/end\s?(\d+|\w+)?$/,          method: :end)
-    match(/finish\s?(\d+|\w+)?$/,       method: :finish)
+    match(/add\s?(\S+)?$/,              method: :add)
+    match(/del\s?(\S+)?$/,              method: :del)
+    match(/remove (\S+)\s?(\S+)?$/,     method: :remove)
+    match(/end\s?(\S+)?$/,              method: :end)
+    match(/finish\s?(\S+)?\s?(\S+)?$/,  method: :finish)
     match(/sub (\S+) (\S+)$/,           method: :sub)
     match(/shutdown$/,                  method: :shutdown)
 

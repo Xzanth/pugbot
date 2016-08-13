@@ -497,12 +497,55 @@ describe PugBot::BotPlugin do
       @queue1 = @plugin.queue_list.new_queue("TestQ", 2)
     end
 
-    it "should end a specified game" do
+    it "should finish the only game in a specified queue" do
       @queue1.add(@user1)
       @queue1.add(@user2)
       set_test_message("PRIVMSG #channel :!finish 1")
       send_message(@message)
-      expect(@queue1.games).to all(satisfy { |game| game.status == :finished })
+      expect(@queue1.games.first.status).to eq(:finished)
+    end
+
+    it "should finish the game one was playing without arguments" do
+      set_test_message("PRIVMSG #channel :!finish")
+      user = @message.user
+      @queue1.add(@user1)
+      @queue1.add(user)
+      send_message(@message)
+      expect(@queue1.games.first.status).to eq(:finished)
+    end
+
+    it "should not allow someone not playing to finish without arguments" do
+      set_test_message("PRIVMSG #channel :!finish")
+      user = @message.user
+      @queue1.add(@user1)
+      @queue1.add(@user2)
+      expect(user).to receive(:notice).with(PugBot::FINISH_NOT_INGAME)
+      send_message(@message)
+      expect(@queue1.games.first.status).to_not eq(:finished)
+    end
+
+    it "should inform if there is more than one game in specified queue" do
+      set_test_message("PRIVMSG #channel :!finish 1")
+      user = @message.user
+      @queue1.add(@user1)
+      @queue1.add(@user2)
+      @queue1.add(@user3)
+      @queue1.add(@user4)
+      expect(user).to receive(:notice).with(PugBot::FINISH_AMBIGUOUS_GAME)
+      send_message(@message)
+      expect(@queue1.games).to all(satisfy { |game| game.status == :ingame })
+    end
+
+    it "should finish the specified game in specified queue" do
+      set_test_message("PRIVMSG #channel :!finish 1 2")
+      @queue1.add(@user1)
+      @queue1.add(@user2)
+      @queue1.add(@user3)
+      @queue1.add(@user4)
+      send_message(@message)
+      expect(@queue1.games.first.status).to eq(:ingame)
+      expect(@queue1.games.last.status).to eq(:finished)
+      expect(@queue1.games.first.users).to eq([@user1, @user2])
     end
 
     it "should set all players to finished when they finish" do

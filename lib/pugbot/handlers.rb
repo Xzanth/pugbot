@@ -275,15 +275,27 @@ module PugBot
     # @!group !finish
 
     # Finish the game currently being played.
-    # @todo Currently finishes all games which is not intended behaviour
     # @param [String] arg The queue to finish the games in
+    # @param [
     # @return [void]
     # @see Game.finish
-    def finish(m, arg)
-      queue = @queue_list.find_queue_by_arg(arg)
-      return m.user.notice QUEUE_NOT_FOUND if queue.nil?
-      return m.user.notice NO_GAME if queue.games.empty?
-      queue.games.each(&:finish)
+    def finish(m, arg1, arg2)
+      if arg1.nil?
+        game = @queue_list.find_game_playing(m.user)
+        return m.user.notice FINISH_NOT_INGAME if game.nil?
+      else
+        queue = @queue_list.find_queue_by_arg(arg1)
+        return m.user.notice QUEUE_NOT_FOUND if queue.nil?
+        return m.user.notice NO_GAME if queue.games.empty?
+        if queue.games.length == 1
+          game = queue.games.first
+        elsif arg2.nil?
+          return m.user.notice FINISH_AMBIGUOUS_GAME
+        else
+          game = queue.games[arg2.to_i - 1]
+        end
+      end
+      game.finish
       update_topic
     end
 

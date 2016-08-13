@@ -20,6 +20,10 @@ module PugBot
   ALREADY_IN_ALL_QUEUES = "You are already in all queues.".freeze
   FINISHED_IN_QUEUE = "You have just finished a game and will be added to this"\
   " one 30s after the last ended.".freeze
+  FINISH_NOT_INGAME = "You are not in a game and must specify the game to be"\
+  " finished.".freeze
+  FINISH_AMBIGUOUS_GAME = "There is more than one game in the specified queue"\
+  " please specify the game as well.".freeze
   NAME_TAKEN = "A queue with that name already exists.".freeze
   ODD_NUMBER = "Games must have an even number of players.".freeze
   TOO_LARGE = "Games must have 32 or less players.".freeze
