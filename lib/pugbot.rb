@@ -39,6 +39,10 @@ module PugBot
     match(/sub (.+) (.+)$/,               method: :sub)
     match(/shutdown$/,                    method: :shutdown)
 
+    # Send message to plugin channel. Quick helper method to stop send methods
+    # getting too long.
+    # @param [String] text The text to send to the channel
+    # @return [void]
     def send(text)
       @channel.send(text)
     end
