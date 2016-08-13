@@ -63,11 +63,7 @@ module PugBot
       listed_wait?(user) or listed?(user)
     end
 
-    # Test if a user is in any game being played in this queue.
-    # @return [Boolean] Whether they are in a game or not
-    def ingame?(user)
-      @games.any { |game| game.users.include?(user) }
-    end
+    # Removed method ingame?
 
     # Add a user to the wait queue.
     # @param [Cinch::User] user The user to add
@@ -152,18 +148,7 @@ module PugBot
       text
     end
 
-    # Print all the games currently being played, with a list of all the
-    # players in each
-    # @return [String] The formatted list of all games with players
-    def print_ingame
-      return "" if @games.empty?
-      return "#{@name} - " + @games[0].to_s if @games.length == 1
-      text = ""
-      @games.each.with_index do |game, index|
-        text += "#{@name} #{index + 1} - #{game}\n"
-      end
-      text
-    end
+    # Removed print_ingame
 
     # Default to print_short for printing the queue object.
     # @return [String] The status of this queue

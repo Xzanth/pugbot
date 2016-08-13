@@ -156,15 +156,49 @@ describe PugBot::BotPlugin do
     it "should tell me about a game currently underway" do
       set_test_message("PRIVMSG #channel :!status TestQ2")
       user = @message.user
-      user2 = Cinch::User.new("nick2", @bot)
-      @queue2.add(user)
-      @queue2.add(user2)
+      @queue2.add(@user1)
+      @queue2.add(@user2)
       allow(user).to receive(:notice)
       send_message(@message)
       expect(user).to have_received(:notice).exactly(2).times
       msgs = [
         "TestQ2 - IN GAME - [0/2]",
-        "Game 1 - Current players: test nick2"
+        "Game 1 - Current players: test1 test2"
+      ]
+      msgs.each { |msg| expect(user).to have_received(:notice).with(msg) }
+    end
+
+    it "should inform about multiple games underway" do
+      set_test_message("PRIVMSG #channel :!status TestQ2")
+      user = @message.user
+      @queue2.add(@user1)
+      @queue2.add(@user2)
+      @queue2.add(@user3)
+      @queue2.add(@user4)
+      allow(user).to receive(:notice)
+      send_message(@message)
+      expect(user).to have_received(:notice).exactly(3).times
+      msgs = [
+        "TestQ2 - 2 GAMES - [0/2]",
+        "Game 1 - Current players: test1 test2",
+        "Game 2 - Current players: test3 test4"
+      ]
+      msgs.each { |msg| expect(user).to have_received(:notice).with(msg) }
+    end
+
+    it "should inform about a game just finished" do
+      @queue2.add(@user1)
+      @queue2.add(@user2)
+      set_test_message("PRIVMSG #channel :!finish 2")
+      send_message(@message)
+      set_test_message("PRIVMSG #channel :!status TestQ2")
+      user = @message.user
+      allow(user).to receive(:notice)
+      send_message(@message)
+      expect(user).to have_received(:notice).exactly(2).times
+      msgs = [
+        "TestQ2 - [0/2]",
+        "Game 1 - Just finished: test1 test2"
       ]
       msgs.each { |msg| expect(user).to have_received(:notice).with(msg) }
     end
