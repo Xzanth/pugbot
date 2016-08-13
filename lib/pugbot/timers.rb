@@ -9,7 +9,7 @@ module PugBot
     # @return <Cinch::Timer> The timer that has just been created.
     # @see Game.timeout
     def timer_game_end(game)
-      Timer(15, shots: 1) { game.timeout }
+      Timer(FINISH_TIMEOUT, shots: 1) { game.timeout }
     end
   end
 end
