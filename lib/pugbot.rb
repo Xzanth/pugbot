@@ -28,16 +28,16 @@ module PugBot
     listen_to :join,    method: :joined_channel
     listen_to :leaving, method: :left_channel
 
-    match(/help$/,                        method: :help)
-    match(/status\s?(\d+|\w+)?$/,         method: :status)
-    match(/start ([a-zA-Z]+)\s?(\d+)?$/,  method: :start)
-    match(/add\s?(\d+|\w+)?$/,            method: :add)
-    match(/del\s?(\d+|\w+)?$/,            method: :del)
-    match(/remove (\S+)\s?(\d+|\w+)?$/,   method: :remove)
-    match(/end\s?(\d+|\w+)?$/,            method: :end)
-    match(/finish\s?(\d+|\w+)?$/,         method: :finish)
-    match(/sub (\S+) (\S+)$/,             method: :sub)
-    match(/shutdown$/,                    method: :shutdown)
+    match(/help$/,                      method: :help)
+    match(/status\s?(\d+|\w+)?$/,       method: :status)
+    match(/start (\S+)\s?(\d+)?$/,      method: :start)
+    match(/add\s?(\d+|\w+)?$/,          method: :add)
+    match(/del\s?(\d+|\w+)?$/,          method: :del)
+    match(/remove (\S+)\s?(\d+|\w+)?$/, method: :remove)
+    match(/end\s?(\d+|\w+)?$/,          method: :end)
+    match(/finish\s?(\d+|\w+)?$/,       method: :finish)
+    match(/sub (\S+) (\S+)$/,           method: :sub)
+    match(/shutdown$/,                  method: :shutdown)
 
     # Send message to plugin channel. Quick helper method to stop send methods
     # getting too long.

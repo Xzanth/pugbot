@@ -61,20 +61,29 @@ describe PugBot::BotPlugin do
   describe "join" do
     it "should welcome people joining" do
       set_test_message("JOIN #channel")
-      expect(@message.user).to(
-        receive(:notice).with(format(PugBot::WELCOME, "#channel"))
+      expect(@message.user).to receive(:notice).with(
+        format(PugBot::WELCOME, "#channel")
       )
       send_message(@message, :join)
     end
 
     it "should cancel timeouts for tracked users" do
-      # TODO
+      set_test_message("JOIN #channel")
+      user = @message.user
+      user.track = true
+      @plugin.timer_user_leave(user)
+      send_message(@message, :join)
+      expect(user.timer).to be_nil
     end
   end
 
   describe "left" do
     it "should start countdown for tracked users" do
-      # TODO
+      set_test_message("PART #channel")
+      user = @message.user
+      user.track = true
+      send_message(@message, :leaving)
+      expect(user.timer).to be_a(Cinch::Timer)
     end
   end
 
@@ -560,6 +569,37 @@ describe PugBot::BotPlugin do
       expect(@plugin).to receive(:abort).with(output)
       expect(@message).to receive(:reply).with(output)
       send_message(@message)
+    end
+  end
+
+  describe "user_timeout" do
+    it "should alert if the user is ingame" do
+      set_test_message("PART #channel")
+      user = @message.user
+      user.status = :ingame
+      user.track = true
+      send_message(@message, :leaving)
+      expect(@plugin).to receive(:send).with(
+        format(PugBot::DISCONNECTED_INGAME, user.nick, user.nick)
+      )
+      @plugin.instance_eval(&user.timer.block)
+      user.timer.stop
+    end
+
+    it "should remove from queues if the user is not ingame" do
+      queue1 = @plugin.queue_list.new_queue("TestQ", 2)
+      set_test_message("PART #channel")
+      user = @message.user
+      queue1.add(user)
+      user.track = true
+      send_message(@message, :leaving)
+      expect(@plugin).to receive(:send).with(
+        format(PugBot::DISCONNECTED, user.nick)
+      )
+      @plugin.instance_eval(&user.timer.block)
+      expect(queue1.users).to_not include(user)
+      expect(user.track).to be false
+      user.timer.stop
     end
   end
 end

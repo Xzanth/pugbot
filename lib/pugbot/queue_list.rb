@@ -80,14 +80,7 @@ module PugBot
       end
     end
 
-    # Is the specified user playing in any games.
-    # @param [Cinch::User] user The user we want to know about
-    # @return [Boolean] Whether they are playing or not
-    def playing?(user)
-      @queues.any? do |queue|
-        queue.games.any? { |game| game.users.include?(user) }
-      end
-    end
+    # Removed method find_queue_by_index
 
     # Removed method find_queue_by_index
 
@@ -106,15 +99,6 @@ module PugBot
       end
     end
 
-    # Set the channel topic to a list of the queues in the queuelist nicely
-    # formatteda.
-    # @return [String] The nicely formatted list
-    def set_topic
-      # [TODO]: globals ugh
-      topic = @queues.map.with_index do |queue, index|
-        "{ Game #{index + 1}: #{queue} }"
-      end
-      @plugin.channel.topic = topic.join(" - ")
-    end
+    # Removed method set_topic
   end
 end

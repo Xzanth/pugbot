@@ -52,7 +52,7 @@ module PugBot
     # @return [void]
     def left_channel(m)
       user = m.user
-      user.left if user.track
+      user.timer = timer_user_leave(user) if user.track
     end
 
     ############################################################################
