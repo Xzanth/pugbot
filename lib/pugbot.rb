@@ -36,7 +36,7 @@ module PugBot
     match(/remove (\S+)\s?(\d+|\w+)?$/,   method: :remove)
     match(/end\s?(\d+|\w+)?$/,            method: :end)
     match(/finish\s?(\d+|\w+)?$/,         method: :finish)
-    match(/sub (.+) (.+)$/,               method: :sub)
+    match(/sub (\S+) (\S+)$/,             method: :sub)
     match(/shutdown$/,                    method: :shutdown)
 
     # Send message to plugin channel. Quick helper method to stop send methods
