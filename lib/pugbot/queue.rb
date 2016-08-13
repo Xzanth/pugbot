@@ -120,7 +120,7 @@ module PugBot
         @wait -= finished
         @queue_list.plugin.send("Users have been randomized into queue")
         ready
-        @queue_list.set_topic
+        @queue_list.plugin.update_topic
       end
     end
 

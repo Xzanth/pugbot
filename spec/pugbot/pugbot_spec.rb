@@ -522,6 +522,15 @@ describe PugBot::BotPlugin do
       expect(@message.user).to receive(:notice).with(PugBot::NO_GAME)
       send_message(@message)
     end
+
+    it "should start a countdown until the game is deleted" do
+      @queue1.add(@user1)
+      @queue1.add(@user2)
+      game = @queue1.games.first
+      set_test_message("PRIVMSG #channel :!finish 1")
+      send_message(@message)
+      expect(game.timer).to be_a(Cinch::Timer)
+    end
   end
 
   describe "!sub" do
@@ -541,12 +550,6 @@ describe PugBot::BotPlugin do
       send_message(@message)
       expect(@queue1.games[0].users).to_not include(@user1)
       expect(@queue1.games[0].users).to include(@user3)
-    end
-
-    it "should remove a sub from any queues they already in" do
-      set_test_message("PRIVMSG #channel :!sub test1 test3")
-      send_message(@message)
-      expect(@queue2.users).to_not include(@user3)
     end
 
     it "should remove a sub from any queues they already in" do
@@ -613,11 +616,10 @@ describe PugBot::BotPlugin do
       user.status = :ingame
       user.track = true
       send_message(@message, :leaving)
-      expect(@plugin).to receive(:send).with(
+      expect(@plugin.channel).to receive(:send).with(
         format(PugBot::DISCONNECTED_INGAME, user.nick, user.nick)
       )
       @plugin.instance_eval(&user.timer.block)
-      user.timer.stop
     end
 
     it "should remove from queues if the user is not ingame" do
@@ -633,7 +635,42 @@ describe PugBot::BotPlugin do
       @plugin.instance_eval(&user.timer.block)
       expect(queue1.users).to_not include(user)
       expect(user.track).to be false
-      user.timer.stop
+    end
+  end
+
+  describe "game_timeout" do
+    before(:each) do
+      @queue1 = @plugin.queue_list.new_queue("TestQ", 2)
+      @queue1.add(@user1)
+      @queue1.add(@user2)
+      @game = @queue1.games.first
+      set_test_message("PRIVMSG #channel :!finish 1")
+    end
+
+    it "should set all players to standby once they have counted down" do
+      players = []
+      @queue1.games.each { |game| players += game.users }
+      players.flatten!
+      send_message(@message)
+      @plugin.instance_eval(&@game.timer.block)
+      @game.timer.stop
+      expect(players).to all(satisfy { |player| player.status == :standby })
+    end
+
+    it "should remove the game object" do
+      send_message(@message)
+      @plugin.instance_eval(&@game.timer.block)
+      @game.timer.stop
+      expect(@queue1.games).to be_empty
+    end
+
+    it "should enable other queues to check for waiters and add them" do
+      @queue2 = @plugin.queue_list.new_queue("TestQ2", 2)
+      send_message(@message)
+      @queue2.add_wait(@user1)
+      @plugin.instance_eval(&@game.timer.block)
+      @game.timer.stop
+      expect(@queue2.users).to include(@user1)
     end
   end
 end
