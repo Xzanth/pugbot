@@ -20,6 +20,8 @@ module PugBot
       m.user.notice EDIT_TOPIC
     end
 
+    # Update the channel topic to the list of the queues in the queue_list
+    # @return [void]
     def update_topic
       topic = @queue_list.queues.map.with_index do |queue, index|
         "{ Game #{index + 1}: #{queue} }"

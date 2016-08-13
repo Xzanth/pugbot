@@ -1,4 +1,5 @@
 require "cinch"
+require "pugbot/timers"
 require "pugbot/queue_list"
 require "pugbot/queue"
 require "pugbot/game"
@@ -37,5 +38,9 @@ module PugBot
     match(/finish\s?(\d+|\w+)?$/,         method: :finish)
     match(/sub (.+) (.+)$/,               method: :sub)
     match(/shutdown$/,                    method: :shutdown)
+
+    def send(text)
+      @channel.send(text)
+    end
   end
 end

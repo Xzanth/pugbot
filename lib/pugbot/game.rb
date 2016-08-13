@@ -9,6 +9,9 @@ module PugBot
     # @return [Symbol] The status of the game, either ingame or finished
     attr_reader :status
 
+    # @return [Cinch::Timer] The timer counting down to the game being deleted
+    attr_reader :timer
+
     # A game that currently exists, with users playing in it. Should not be
     # called directly, should automatically be called by Queue.ready
     # @param [Queue] queue The queue that this game has taken its players from
@@ -23,23 +26,26 @@ module PugBot
     # Ran when the game is manually finished, change the state of all users
     # who played and start a timer for them having to wait to join other
     # games.
+    # @see BotPlugin.timer_game_end
     # @see #timeout
+    # @return [void]
     def finish
       @users.each do |user|
         user.status = :finished
         user.track = false
       end
       @status = :finished
-      $timers.after(30) { timeout }
+      @timer = @queue.queue_list.plugin.timer_game_end(self)
     end
 
-    # Called after 30s have passed since this game has finished, set all the
+    # Called after the timer after finishing this game has ended, set all the
     # players back to standby and have all games check their waiting pools
     # to account for all the changed statuses also remove from the queue's
     # list of games essentially deleting the object.
+    # @return [void]
     def timeout
       @users.each { |user| user.status = :standby }
-      @queue.queue_list.each(&:check_waiters)
+      @queue.queue_list.queues.each(&:check_waiters)
       @queue.finish(self)
     end
 
@@ -47,6 +53,7 @@ module PugBot
     # any other necessary options
     # @param [Cinch::User] user The user currently playing to be replaced
     # @param [Cinch::User] sub The user to be added to the game
+    # @return [void]
     def sub(user, sub)
       @users.delete(user)
       user.status = :standby

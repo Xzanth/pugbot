@@ -10,7 +10,7 @@ Gem::Specification.new do |gem|
   gem.platform    = Gem::Platform::RUBY
 
   gem.add_dependency("cinch", "~> 2.3.2")
-  gem.add_dependency("timers", "~> 4.1.1")
+  gem.add_dependency("cinch-identify", "~> 1.7.0")
 
   gem.add_development_dependency "rubocop"
   gem.add_development_dependency "yard"

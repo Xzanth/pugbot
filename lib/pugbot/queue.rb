@@ -122,7 +122,7 @@ module PugBot
         finished.shuffle!
         @users += finished
         @wait -= finished
-        @channel.send("Users have been randomized into queue")
+        @queue_list.plugin.send("Users have been randomized into queue")
         ready
         @queue_list.set_topic
       end
@@ -132,10 +132,11 @@ module PugBot
     # (and the number if there are multiple) and the number of players and subs.
     # @return [String] The status of this queue
     def print_short
+      ingame = @games.select { |game| game.status == :ingame }
       text = "#{@name} - "
-      if @games.length == 1
+      if ingame.length == 1
         text << "IN GAME - "
-      elsif @games.length > 1
+      elsif ingame.length > 1
         text << "#{@games.length} GAMES - "
       end
       text << "[#{@users.length}/#{@max}]"
