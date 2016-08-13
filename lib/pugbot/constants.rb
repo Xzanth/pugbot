@@ -33,4 +33,6 @@ module PugBot
   WELCOME = "Welcome to %s - sign up for games by typing '!add"\
   " nameofgame' and remove yourself from queues with '!del'.".freeze
   KILLED = "Bot shut down by %s!".freeze
+
+  FINISH_TIMEOUT = 90
 end

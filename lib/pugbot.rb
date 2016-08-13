@@ -3,7 +3,7 @@ require "pugbot/queue_list"
 require "pugbot/queue"
 require "pugbot/game"
 require "pugbot/handlers"
-require "pugbot/messages"
+require "pugbot/constants"
 require "pugbot/cinch/user"
 
 # This module contains the pugbot plugin and all the associated classes needed
