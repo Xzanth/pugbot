@@ -276,24 +276,21 @@ module PugBot
 
     # Finish the game currently being played.
     # @param [String] arg The queue to finish the games in
-    # @param [
+    # @param [String] arg2 The number game to be finished
     # @return [void]
+    # @see Queue.find_game_by_arg
     # @see Game.finish
     def finish(m, arg1, arg2)
+      user = m.user
       if arg1.nil?
         game = @queue_list.find_game_playing(m.user)
-        return m.user.notice FINISH_NOT_INGAME if game.nil?
+        return user.notice FINISH_NOT_INGAME if game.nil?
       else
         queue = @queue_list.find_queue_by_arg(arg1)
-        return m.user.notice QUEUE_NOT_FOUND if queue.nil?
-        return m.user.notice NO_GAME if queue.games.empty?
-        if queue.games.length == 1
-          game = queue.games.first
-        elsif arg2.nil?
-          return m.user.notice FINISH_AMBIGUOUS_GAME
-        else
-          game = queue.games[arg2.to_i - 1]
-        end
+        return user.notice QUEUE_NOT_FOUND if queue.nil?
+        return user.notice NO_GAME if queue.games.empty?
+        game = queue.find_game_by_arg(arg2)
+        return user.notice FINISH_AMBIGUOUS_GAME if game.nil?
       end
       game.finish
       update_topic

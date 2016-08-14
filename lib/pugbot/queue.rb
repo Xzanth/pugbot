@@ -124,6 +124,17 @@ module PugBot
       end
     end
 
+    # Find a game in this queue when supplied with a string argument that is the
+    # number game in the list. If there is only one game don't require an
+    # argument but if there are more then return nil for no argument.
+    # @param [String] arg A string consisting of the number of the game to find
+    # @return [Game] The game found, or nil if the game is ambiguous
+    def find_game_by_arg(arg)
+      return @games.first if @games.length == 1
+      return nil if arg.nil?
+      @games[arg.to_i - 1]
+    end
+
     # Just print the queue name, whether there is one in progress or not
     # (and the number if there are multiple) and the number of players and subs.
     # @return [String] The status of this queue
