@@ -5,7 +5,8 @@ describe PugBot::BotPlugin do
     @bot = TestBot.new do
       configure do |config|
         config.plugins.options[PugBot::BotPlugin] = {
-          channel: "#channel"
+          channel: "#channel",
+          integrate: true
         }
       end
     end
@@ -220,7 +221,7 @@ describe PugBot::BotPlugin do
       send_message(@message)
     end
 
-    it "shouldn't start if there is a game by that name already" do
+    it "shouldn't start if there is a queue by that name already" do
       @queue1 = @plugin.queue_list.new_queue("TestQ")
       set_test_message("PRIVMSG #channel :!start TestQ 10")
       @message.channel.add_user(@message.user, ["o"])
@@ -256,7 +257,7 @@ describe PugBot::BotPlugin do
       send_message(@message)
     end
 
-    it "should join the game we give as an argument" do
+    it "should join the queue we give as an argument" do
       set_test_message("PRIVMSG #channel :!add 2")
       user = @message.user
       expect(@queue2).to receive(:add).with(user)
@@ -280,7 +281,7 @@ describe PugBot::BotPlugin do
       send_message(@message)
     end
 
-    it "should not join a game if we are playing a game" do
+    it "should not join a queue if we are playing a game" do
       set_test_message("PRIVMSG #channel :!add TestQ")
       user = @message.user
       user.status = :ingame
@@ -714,6 +715,29 @@ describe PugBot::BotPlugin do
       @plugin.instance_eval(&@game.timer.block)
       @game.timer.stop
       expect(@queue2.users).to include(@user1)
+    end
+  end
+
+  describe "game_ready" do
+    before(:each) do
+      @queue1 = @plugin.queue_list.new_queue("TestQ", 2)
+    end
+
+    it "should create a new game when the correct number of people sign up" do
+      @queue1.add(@user1)
+      @queue1.add(@user2)
+      expect(@queue1.games).to_not be_empty
+    end
+
+    it "should send an integrate event out" do
+      @queue1.add(@user1)
+      expect(@bot.handlers).to receive(:dispatch).with(
+        :integrate,
+        nil,
+        :slack,
+        any_args
+      )
+      @queue1.add(@user2)
     end
   end
 end

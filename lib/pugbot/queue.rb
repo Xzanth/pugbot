@@ -101,12 +101,6 @@ module PugBot
         end
         text = "Game #{@name} - starting for #{ingame.join(' ')}"
         @queue_list.plugin.channel.send(text)
-        # $slack_client.web_client.chat_postMessage(
-        #   channel: "#pugs",
-        #   text: "#{text} - sign up for the next on "\
-        #   "<http://webchat.quakenet.org/?channels=midair.pug|#midair.pug>",
-        #   as_user: true
-        # )
       end
     end
 
