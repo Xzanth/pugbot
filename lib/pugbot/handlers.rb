@@ -166,6 +166,7 @@ module PugBot
       else
         queues.each { |q| q.add(user) }
       end
+      update_topic
     end
 
     ############################################################################
@@ -199,6 +200,7 @@ module PugBot
       return user.notice YOU_NOT_IN_ANY_QUEUES if queues.empty?
       queues.each { |q| q.remove(user) }
       m.reply format(LEFT_ALL, user.nick)
+      update_topic
     end
 
     ############################################################################
@@ -249,6 +251,7 @@ module PugBot
       return user.notice YOU_NOT_IN_ANY_QUEUES if queues.empty?
       queues.each { |q| q.remove(user) }
       m.reply format(REMOVED, user.nick, "all queues", m.user.nick)
+      update_topic
     end
 
     ############################################################################
