@@ -88,17 +88,6 @@ describe PugBot::BotPlugin do
     end
   end
 
-  describe "!help" do
-    before(:each) do
-      set_test_message("PRIVMSG #channel :!help")
-    end
-
-    it "should send back the help for using the pug bot" do
-      expect(@message.user).to receive(:notice).with(PugBot::HELP)
-      send_message(@message)
-    end
-  end
-
   describe "!status" do
     before(:each) do
       @queue1 = @plugin.queue_list.new_queue("TestQ")

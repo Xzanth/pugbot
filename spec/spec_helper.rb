@@ -11,6 +11,7 @@ SimpleCov.start CodeClimate::TestReporter.configuration.profile do
 end
 
 require "cinch"
+require "cinch/commands"
 require "pugbot"
 
 class TestBot < Cinch::Bot

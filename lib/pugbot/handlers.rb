@@ -56,16 +56,6 @@ module PugBot
     end
 
     ############################################################################
-    # @!group !help
-
-    # Give information to the user requesting help.
-    # @todo Proper help, add argument to give help about specific commands
-    # @return [void]
-    def help(m)
-      m.user.notice HELP
-    end
-
-    ############################################################################
     # @!group !status
 
     # Parse a status command, give status about a queue specified by arg. Give
