@@ -21,6 +21,7 @@ module PugBot
       @queue = queue
       @users = users
       @status = :ingame
+      @queue.queue_list.plugin.integrate(:game_start, self, @queue)
     end
 
     # Ran when the game is manually finished, change the state of all users

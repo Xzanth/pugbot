@@ -44,4 +44,7 @@ module PugBot
 
   FINISH_TIMEOUT = 90
   LEAVE_TIMEOUT = 120
+
+  SLACK_GAME_START = "Game of %s - starting for %s - sign up for the next on"\
+  " %s".freeze
 end
