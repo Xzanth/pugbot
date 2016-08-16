@@ -64,6 +64,10 @@ module PugBot
             description: "For a game in progress, substitute a user currently"\
             " in the game named PLAYER with a user named SUB not currently"\
             " playing any game."
+    command :ts3, [],
+            summary: "Get the ts3 info",
+            description: "Reply to the message with teamspeak3 connection"\
+            " information for all users in the channel."
     command :start,
             [{ name: "QUEUE_NAME", format: :string, optional: false },
              { name: "NUM_PLAYERS", format: :integer, optional: true }],

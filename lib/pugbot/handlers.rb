@@ -56,6 +56,15 @@ module PugBot
     end
 
     ############################################################################
+    # @!group !ts3
+
+    # Inform channel of the ts3 info.
+    # @return [void]
+    def ts3(m)
+      m.reply TS3_INFO
+    end
+
+    ############################################################################
     # @!group !status
 
     # Parse a status command, give status about a queue specified by arg. Give

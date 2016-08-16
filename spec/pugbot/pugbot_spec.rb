@@ -642,6 +642,14 @@ describe PugBot::BotPlugin do
     end
   end
 
+  describe "!ts3" do
+    it "should respond with ts3 info" do
+      set_test_message("PRIVMSG #channel :!ts3")
+      expect(@message).to receive(:reply).with(PugBot::TS3_INFO)
+      send_message(@message)
+    end
+  end
+
   describe "user_timeout" do
     it "should alert if the user is ingame" do
       set_test_message("PART #channel")
