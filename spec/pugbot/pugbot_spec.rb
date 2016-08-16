@@ -718,6 +718,14 @@ describe PugBot::BotPlugin do
       expect(@queue1.games).to_not be_empty
     end
 
+    it "should hilight all the players in the channel" do
+      @queue1.add(@user1)
+      expect(@plugin.channel).to receive(:send).with(
+        "Game TestQ - starting for test1 test2"
+      )
+      @queue1.add(@user2)
+    end
+
     it "should send an integrate event out" do
       @queue1.add(@user1)
       expect(@bot.handlers).to receive(:dispatch).with(

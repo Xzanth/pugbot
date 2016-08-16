@@ -100,7 +100,7 @@ module PugBot
           @queue_list.remove_from_queues(user)
         end
         text = "Game #{@name} - starting for #{ingame.join(' ')}"
-        @queue_list.plugin.channel.send(text)
+        @queue_list.plugin.send(text)
       end
     end
 
