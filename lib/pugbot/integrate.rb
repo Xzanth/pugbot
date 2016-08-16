@@ -3,6 +3,13 @@ module PugBot
   # the users input, tracks players and controls nearly all running of the pug
   # bot itself.
   class BotPlugin
+    # Send events to cinch-integrate if we have enable integrations in the
+    # config.
+    # @param [Symbol] type The type of message to send, this alters which
+    # integrations to send to
+    # @param [Hash] args The details of the message to be sent to the
+    # integration
+    # @return [void]
     def integrate(type, *args)
       return unless config[:integrate]
       case type
