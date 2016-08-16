@@ -22,6 +22,7 @@ module PugBot
       @users = users
       @status = :ingame
       @queue.queue_list.plugin.integrate(:game_start, self, @queue)
+      @start_time = Time.now
     end
 
     # Ran when the game is manually finished, change the state of all users
@@ -36,6 +37,7 @@ module PugBot
         user.track = false
       end
       @status = :finished
+      @finish_time = Time.now
       @timer = @queue.queue_list.plugin.timer_game_end(self)
     end
 
@@ -68,10 +70,11 @@ module PugBot
     # List the current players of this game
     # @return [String] A list of all the users
     def to_s
+      time = (Time.now - @start_time).to_i / 60
       if @status == :ingame
-        "Current players: #{@users.join(' ')}"
+        "Current players: #{@users.join(' ')} - started #{time} minutes ago."
       else
-        "Just finished: #{@users.join(' ')}"
+        "Just finished: #{@users.join(' ')} - started #{time} minutes ago."
       end
     end
   end

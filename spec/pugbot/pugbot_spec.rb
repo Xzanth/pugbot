@@ -153,7 +153,7 @@ describe PugBot::BotPlugin do
       expect(user).to have_received(:notice).exactly(2).times
       msgs = [
         "TestQ2 - IN GAME - [0/2]",
-        "Game 1 - Current players: test1 test2"
+        "Game 1 - Current players: test1 test2 - started 0 minutes ago."
       ]
       msgs.each { |msg| expect(user).to have_received(:notice).with(msg) }
     end
@@ -170,8 +170,8 @@ describe PugBot::BotPlugin do
       expect(user).to have_received(:notice).exactly(3).times
       msgs = [
         "TestQ2 - 2 GAMES - [0/2]",
-        "Game 1 - Current players: test1 test2",
-        "Game 2 - Current players: test3 test4"
+        "Game 1 - Current players: test1 test2 - started 0 minutes ago.",
+        "Game 2 - Current players: test3 test4 - started 0 minutes ago."
       ]
       msgs.each { |msg| expect(user).to have_received(:notice).with(msg) }
     end
@@ -188,7 +188,7 @@ describe PugBot::BotPlugin do
       expect(user).to have_received(:notice).exactly(2).times
       msgs = [
         "TestQ2 - [0/2]",
-        "Game 1 - Just finished: test1 test2"
+        "Game 1 - Just finished: test1 test2 - started 0 minutes ago."
       ]
       msgs.each { |msg| expect(user).to have_received(:notice).with(msg) }
     end
