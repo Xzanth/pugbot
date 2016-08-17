@@ -53,7 +53,8 @@ module PugBot
     # @return [void]
     def left_channel(m, *_args)
       user = m.user
-      user.timer = timer_user_leave(user) if user.track
+      return unless user.track
+      user.timer = timer_user_leave(user)
       send format(DISCONNECTED, user.nick)
     end
 
