@@ -13,10 +13,10 @@ describe PugBot::BotPlugin do
     @plugin = PugBot::BotPlugin.new(@bot)
     @plugin.setup
     @channel = @plugin.channel
-    @user1 = Cinch::User.new("test1", @bot)
-    @user2 = Cinch::User.new("test2", @bot)
-    @user3 = Cinch::User.new("test3", @bot)
-    @user4 = Cinch::User.new("test4", @bot)
+    @user1 = TestUser.new("test1", @bot)
+    @user2 = TestUser.new("test2", @bot)
+    @user3 = TestUser.new("test3", @bot)
+    @user4 = TestUser.new("test4", @bot)
   end
 
   describe "private message" do
