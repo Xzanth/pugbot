@@ -1,6 +1,6 @@
 Gem::Specification.new do |gem|
   gem.name          = "pugbot"
-  gem.version       = "0.1.1.hotfix.1"
+  gem.version       = "0.1.2"
   gem.authors       = ["Xzanth"]
   gem.description   = "Pug bot as cinch plugin"
   gem.summary       = "Cinch plugin for organising pick up games, designed"\
