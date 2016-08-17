@@ -1,7 +1,7 @@
 require "simplecov"
 require "codeclimate-test-reporter"
 
-SimpleCov.start CodeClimate::TestReporter.configuration.profile do
+CodeClimate::TestReporter.configuration.profile do
   formatter SimpleCov::Formatter::MultiFormatter.new(
     [
       SimpleCov::Formatter::HTMLFormatter,
@@ -13,6 +13,15 @@ end
 require "cinch"
 require "cinch/commands"
 require "pugbot"
+require "dm-migrations"
+require "dm-sqlite-adapter"
+
+CodeClimate::TestReporter.configure do
+  DataMapper.setup(:default, "sqlite://#{Dir.pwd}/testing.db")
+  DataMapper.auto_migrate!
+end
+
+SimpleCov.start
 
 class TestBot < Cinch::Bot
   attr_reader :raw_log
@@ -59,7 +68,7 @@ end
 class TestMessage < Cinch::Message
   def initialize(msg, bot, opts = {})
     super(msg, bot)
-    @user = Cinch::User.new(opts.delete(:nick) { "test" }, bot)
+    @user = TestUser.new(opts.delete(:nick) { "test" }, bot)
 
     if opts.key?(:channel)
       @channel = Cinch::Channel.new(opts.delete(:channel), bot)
@@ -71,6 +80,12 @@ class TestMessage < Cinch::Message
 
   def numeric_reply?
     false
+  end
+end
+
+class TestUser < Cinch::User
+  def attr(attribute, _data = true, _unsync = false)
+    @data[attribute]
   end
 end
 
