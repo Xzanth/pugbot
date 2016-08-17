@@ -29,7 +29,7 @@ module PugBot
       if user.status == :ingame
         send format(DISCONNECTED_INGAME, user.nick, user.nick)
       else
-        send format(DISCONNECTED, user.nick)
+        send format(DISCONNECTED_OUT, user.nick)
         user.track = false
         @queue_list.remove_from_queues(user)
         update_topic

@@ -37,9 +37,11 @@ module PugBot
   WELCOME = "Welcome to %s - sign up for games by typing '!add"\
   " nameofgame' and remove yourself from queues with '!del'.".freeze
   KILLED = "Bot shut down by %s!".freeze
+  DISCONNECTED = "%s has disconnected and has 2 mins to return before losing"\
+  " their space in queue.".freeze
   DISCONNECTED_INGAME = "%s has disconnected but is in game. Please use '!sub"\
   " %s new_player' to replace them if needed.".freeze
-  DISCONNECTED = "%s has not returned and has lost their space in the"\
+  DISCONNECTED_OUT = "%s has not returned and has lost their space in the"\
     " queue.".freeze
   TS3_INFO = "ts3.playmidair.com".freeze
 

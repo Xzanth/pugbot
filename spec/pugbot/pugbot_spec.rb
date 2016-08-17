@@ -86,6 +86,16 @@ describe PugBot::BotPlugin do
       send_message(@message, :leaving)
       expect(user.timer).to be_a(Cinch::Timer)
     end
+
+    it "should announce that the user has 2 minutes to return" do
+      set_test_message("PART #channel")
+      user = @message.user
+      user.track = true
+      expect(@plugin.channel).to receive(:send).with(
+        format(PugBot::DISCONNECTED, user.nick)
+      )
+      send_message(@message, :leaving)
+    end
   end
 
   describe "!status" do
@@ -671,7 +681,7 @@ describe PugBot::BotPlugin do
       user.track = true
       send_message(@message, :leaving)
       expect(@plugin).to receive(:send).with(
-        format(PugBot::DISCONNECTED, user.nick)
+        format(PugBot::DISCONNECTED_OUT, user.nick)
       )
       @plugin.instance_eval(&user.timer.block)
       expect(queue1.users).to_not include(user)
