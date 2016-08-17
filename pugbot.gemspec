@@ -1,6 +1,11 @@
+lib_dir = File.join(File.dirname(__FILE__), "lib")
+$LOAD_PATH << lib_dir unless $LOAD_PATH.include?(lib_dir)
+
+require "pugbot/version"
+
 Gem::Specification.new do |gem|
   gem.name          = "pugbot"
-  gem.version       = "0.1.2"
+  gem.version       = PugBot::VERSION
   gem.authors       = ["Xzanth"]
   gem.description   = "Pug bot as cinch plugin"
   gem.summary       = "Cinch plugin for organising pick up games, designed"\
