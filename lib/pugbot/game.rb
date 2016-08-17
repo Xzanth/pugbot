@@ -38,9 +38,14 @@ module PugBot
       end
       @status = :finished
       @finish_time = Time.now
-      Storage::Game.create(queue: @queue.name,
-                           started: @start_time,
-                           finished: @finish_time)
+      game = Storage::Game.create(queue: @queue.name,
+                                  started: @start_time,
+                                  finished: @finish_time)
+      @users.each do |user|
+        Storage::Gameplay.create(host: user.host,
+                                 user: user.account,
+                                 game: game)
+      end
       @timer = @queue.queue_list.plugin.timer_game_end(self)
     end
 

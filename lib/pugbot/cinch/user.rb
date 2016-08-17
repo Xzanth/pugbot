@@ -1,5 +1,4 @@
 # Extend the cinch module
-# @todo create new user class that has a link to Cinch::User
 module Cinch
   # Extending Cinch's user class to add the ability to track whether they are
   # ingame, finished or not using @status, and to handle removing them from
@@ -22,6 +21,23 @@ module Cinch
     def rejoined
       return unless @track
       @timer.stop
+    end
+
+    def account
+      account = PugBot::Storage::User.first(auth: authname) if authed?
+      account = PugBot::Storage::User.first(nick: nick,
+                                            authed: false) unless authed?
+      return make_account if account.nil?
+      account
+    end
+
+    def make_account
+      account = PugBot::Storage::User.create(authed: true,
+                                             auth:   authname,
+                                             nick:   authname) if authed?
+      account = PugBot::Storage::User.create(authed: false,
+                                             nick:   nick) unless authed?
+      account
     end
   end
 end
