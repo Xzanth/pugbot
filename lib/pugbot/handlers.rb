@@ -7,7 +7,7 @@ module PugBot
     # array of names to not pmsg back.
     # @return [void]
     def setup(*)
-      @names = ["Q"]
+      @names = ["Q", bot.nick]
       @channel = Channel(config[:channel])
       @queue_list = QueueList.new(self)
     end
@@ -33,6 +33,7 @@ module PugBot
     # private message us.
     # @return [void]
     def private_message(m)
+      return if m.user.nil?
       nick = m.user.nick
       m.reply I_AM_BOT and @names.push(nick) unless @names.include?(nick)
     end
