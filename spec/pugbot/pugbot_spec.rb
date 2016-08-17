@@ -660,6 +660,16 @@ describe PugBot::BotPlugin do
     end
   end
 
+  describe "!version" do
+    it "should respond with version number" do
+      set_test_message("PRIVMSG #channel :!version")
+      expect(@message).to receive(:reply).with(
+        format(PugBot::VERSION_REPLY, PugBot::VERSION)
+      )
+      send_message(@message)
+    end
+  end
+
   describe "user_timeout" do
     it "should alert if the user is ingame" do
       set_test_message("PART #channel")

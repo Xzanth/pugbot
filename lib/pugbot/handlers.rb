@@ -68,6 +68,15 @@ module PugBot
     end
 
     ############################################################################
+    # @!group !version
+
+    # Inform channel of the pugbot version.
+    # @return [void]
+    def version(m)
+      m.reply format(VERSION_REPLY, VERSION)
+    end
+
+    ############################################################################
     # @!group !status
 
     # Parse a status command, give status about a queue specified by arg. Give

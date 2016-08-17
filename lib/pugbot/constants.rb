@@ -44,6 +44,7 @@ module PugBot
   DISCONNECTED_OUT = "%s has not returned and has lost their space in the"\
     " queue.".freeze
   TS3_INFO = "ts3.playmidair.com".freeze
+  VERSION_REPLY = "Currently running pugbot version: %s".freeze
 
   FINISH_TIMEOUT = 90
   LEAVE_TIMEOUT = 120

@@ -7,6 +7,7 @@ require "pugbot/game"
 require "pugbot/integrate"
 require "pugbot/handlers"
 require "pugbot/constants"
+require "pugbot/version"
 require "pugbot/cinch/user"
 require "pugbot/storage/models"
 
@@ -69,6 +70,10 @@ module PugBot
             summary: "Get the ts3 info",
             description: "Reply to the message with teamspeak3 connection"\
             " information for all users in the channel."
+    command :version, [],
+            summary: "Get the version number of pugbot",
+            description: "Reply to the message with the version number of"\
+            " pugbot from version.rb"
     command :start,
             [{ name: "QUEUE_NAME", format: :string, optional: false },
              { name: "NUM_PLAYERS", format: :integer, optional: true }],
