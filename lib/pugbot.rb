@@ -8,6 +8,7 @@ require "pugbot/integrate"
 require "pugbot/handlers"
 require "pugbot/constants"
 require "pugbot/cinch/user"
+require "pugbot/storage/models"
 
 # This module contains the pugbot plugin and all the associated classes needed
 # to organise, create and monitor games being run.

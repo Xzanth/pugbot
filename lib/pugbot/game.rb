@@ -38,6 +38,9 @@ module PugBot
       end
       @status = :finished
       @finish_time = Time.now
+      Storage::Game.create(queue: @queue.name,
+                           started: @start_time,
+                           finished: @finish_time)
       @timer = @queue.queue_list.plugin.timer_game_end(self)
     end
 
