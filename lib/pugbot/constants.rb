@@ -1,4 +1,7 @@
 module PugBot
+  WELCOME = "Welcome to %s - sign up for games by typing '!add"\
+  " nameofgame' and remove yourself from queues with '!del'. Type '!help' to"\
+  " get a list of possible commands.".freeze
   ACCESS_DENIED = "Access denied - must be a channel operator.".freeze
   USERS_NOT_FOUND = "One or more users not found.".freeze
   NOT_PLAYING = "%s is not playing a game.".freeze
@@ -27,15 +30,9 @@ module PugBot
   NAME_TAKEN = "A queue with that name already exists.".freeze
   ODD_NUMBER = "Games must have an even number of players.".freeze
   TOO_LARGE = "Games must have 32 or less players.".freeze
-  HELP = "Supported commands are: !help, !status (all|gamename|num), !finish"\
-  " (gamename|num), !add (all|gamename|num), !del (all|gamename|num), !subs"\
-  " and !sub (name1) (name2). And for channel operators: !start gamename"\
-  " (num), !end (gamename|num) and !remove name.".freeze
   EDIT_TOPIC = "Please don't edit the topic.".freeze
   I_AM_BOT = "I am a bot please direct all questions/comments to"\
   " Xzanth.".freeze
-  WELCOME = "Welcome to %s - sign up for games by typing '!add"\
-  " nameofgame' and remove yourself from queues with '!del'.".freeze
   KILLED = "Bot shut down by %s!".freeze
   DISCONNECTED = "%s has disconnected and has 2 mins to return before losing"\
   " their space in queue.".freeze
