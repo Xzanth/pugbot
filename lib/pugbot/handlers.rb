@@ -26,7 +26,12 @@ module PugBot
       topic = @queue_list.queues.map.with_index do |queue, index|
         "{ Game #{index + 1}: #{queue} }"
       end
-      @channel.topic = topic.join(" - ")
+      full_topic = topic.join(" - ")
+      unless @topic.nil?
+        full_topic << " - " unless full_topic.empty?
+        full_topic << @topic
+      end
+      @channel.topic = full_topic
     end
 
     # Inform anyone we haven't informed previously that we are a bot when they
@@ -74,6 +79,16 @@ module PugBot
     # @return [void]
     def version(m)
       m.reply format(VERSION_REPLY, VERSION)
+    end
+
+    ############################################################################
+    # @!group !topic
+
+    # Inform channel of the pugbot version.
+    # @return [void]
+    def topic(_m, text)
+      @topic = text
+      update_topic
     end
 
     ############################################################################

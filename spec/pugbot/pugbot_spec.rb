@@ -670,6 +670,26 @@ describe PugBot::BotPlugin do
     end
   end
 
+  describe "!topic" do
+    it "should become the new topic if there are no queues" do
+      set_test_message("PRIVMSG #channel :!topic TEST TOPIC")
+      user = @message.user
+      @message.channel.add_user(user, ["o"])
+      expect(@channel).to receive(:topic=).with("TEST TOPIC")
+      send_message(@message)
+    end
+
+    it "should be appended to the topic if there are queues" do
+      @plugin.queue_list.new_queue("TestQ")
+      set_test_message("PRIVMSG #channel :!topic TEST TOPIC")
+      @message.channel.add_user(@message.user, ["o"])
+      expect(@channel).to receive(:topic=).with(
+        "{ Game 1: TestQ - [0/10] } - TEST TOPIC"
+      )
+      send_message(@message)
+    end
+  end
+
   describe "user_timeout" do
     it "should alert if the user is ingame" do
       set_test_message("PART #channel")
