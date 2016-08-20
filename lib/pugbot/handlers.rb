@@ -24,7 +24,7 @@ module PugBot
     # @return [void]
     def update_topic
       topic = @queue_list.queues.map.with_index do |queue, index|
-        "{ Game #{index + 1}: #{queue} }"
+        "{ Queue #{index + 1}: #{queue} }"
       end
       full_topic = topic.join(" - ")
       unless @topic.nil?

@@ -684,7 +684,7 @@ describe PugBot::BotPlugin do
       set_test_message("PRIVMSG #channel :!topic TEST TOPIC")
       @message.channel.add_user(@message.user, ["o"])
       expect(@channel).to receive(:topic=).with(
-        "{ Game 1: TestQ - [0/10] } - TEST TOPIC"
+        "{ Queue 1: TestQ - [0/10] } - TEST TOPIC"
       )
       send_message(@message)
     end
