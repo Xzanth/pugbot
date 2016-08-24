@@ -372,6 +372,20 @@ module PugBot
     end
 
     ############################################################################
+    # @!group !restart
+
+    # Effectively restart the bot, clearing the queue list and resetting all
+    # users to an untracked state.
+    # @return [void]
+    def restart(m)
+      return m.user.notice ACCESS_DENIED unless m.channel.opped?(m.user)
+      m.reply format(RESTARTED, m.user.nick)
+      @queue_list = QueueList.new(self)
+      @channel.users.keys.each { |u| u.track = false }
+      update_topic
+    end
+
+    ############################################################################
     # @!group HelperFunctions
 
     # Is a user currently playing in a game?

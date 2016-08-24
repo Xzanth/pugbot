@@ -99,6 +99,12 @@ module PugBot
             description: "Operators only. Adds TEXT to the end of the topic"\
             " any time the bot updates the channel topic. Only lasts until"\
             " next bot restart."
+    command :restart, [],
+            summary: "Operators only. Clear queue list and start again",
+            description: "Operators only. Will clear the entire queue_list and"\
+            " set all users to untracked so if there is a game that hasn't"\
+            " finished properly or something and people are unable to join"\
+            " another then !restart."
     command :shutdown, [],
             summary: "Operators only. Shut down the whole bot",
             description: "Operators only. Will shut down the whole bot so"\
