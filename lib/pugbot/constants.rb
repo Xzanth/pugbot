@@ -34,6 +34,7 @@ module PugBot
   I_AM_BOT = "I am a bot please direct all questions/comments to"\
   " Xzanth.".freeze
   KILLED = "Bot shut down by %s!".freeze
+  RESTARTED = "Bot effectively restarted by %s!".freeze
   DISCONNECTED = "%s has disconnected and has 2 mins to return before losing"\
   " their space in queue.".freeze
   DISCONNECTED_INGAME = "%s has disconnected but is in game. Please use '!sub"\
