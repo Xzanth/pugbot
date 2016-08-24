@@ -94,11 +94,11 @@ module PugBot
             summary: "Operators only. Delete the specified queue",
             description: "Operators only. Delete the queue with name or"\
             " number: QUEUE."
-    command :topic, [{ name: "TEXT", format: :text, optional: false }],
+    command :topic, [{ name: "TEXT", format: :text, optional: true }],
             summary: "Operators only. Add information to topic",
             description: "Operators only. Adds TEXT to the end of the topic"\
             " any time the bot updates the channel topic. Only lasts until"\
-            " next bot restart."
+            " next bot restart. Call with no arguments to clear topic."
     command :restart, [],
             summary: "Operators only. Clear queue list and start again",
             description: "Operators only. Will clear the entire queue_list and"\
