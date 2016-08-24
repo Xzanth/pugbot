@@ -381,7 +381,10 @@ module PugBot
       return m.user.notice ACCESS_DENIED unless m.channel.opped?(m.user)
       m.reply format(RESTARTED, m.user.nick)
       @queue_list = QueueList.new(self)
-      @channel.users.keys.each { |u| u.track = false }
+      @channel.users.keys.each do |u|
+        u.track = false
+        u.status = :standby
+      end
       update_topic
     end
 
