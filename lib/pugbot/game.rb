@@ -32,6 +32,7 @@ module PugBot
     # @see #timeout
     # @return [void]
     def finish
+      @timer = @queue.queue_list.plugin.timer_game_end(self)
       @users.each do |user|
         user.status = :finished
         user.track = false
@@ -46,7 +47,6 @@ module PugBot
                                  user: user.account,
                                  game: game)
       end
-      @timer = @queue.queue_list.plugin.timer_game_end(self)
     end
 
     # Called after the timer after finishing this game has ended, set all the
