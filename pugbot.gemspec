@@ -17,6 +17,7 @@ Gem::Specification.new do |gem|
   gem.platform      = Gem::Platform::RUBY
 
   gem.add_dependency("cinch", "~> 2.3")
+  gem.add_dependency("sinatra", "~> 1.4")
   gem.add_dependency("cinch-identify", "~> 1.7")
   gem.add_dependency("cinch-commands", "~> 0.1")
   gem.add_dependency("dm-core", "~> 1.2")

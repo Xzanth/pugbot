@@ -161,5 +161,18 @@ module PugBot
     def to_s
       print_short
     end
+
+    def to_hash
+      {
+        "queue_name": @name,
+        "current_players": @users.length,
+        "max_players": @max,
+        "players": @users.map(&:name)
+      }
+    end
+
+    def to_json(*a)
+      to_hash.to_json(*a)
+    end
   end
 end

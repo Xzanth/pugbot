@@ -10,6 +10,7 @@ require "pugbot/constants"
 require "pugbot/version"
 require "pugbot/cinch/user"
 require "pugbot/storage/models"
+require "json"
 
 # This module contains the pugbot plugin and all the associated classes needed
 # to organise, create and monitor games being run.

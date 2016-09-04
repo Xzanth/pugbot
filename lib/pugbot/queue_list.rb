@@ -100,5 +100,9 @@ module PugBot
     end
 
     # Removed method set_topic
+
+    def to_json(*a)
+      @queues.map(&:to_hash).to_json(*a)
+    end
   end
 end
