@@ -167,7 +167,8 @@ module PugBot
         "queue_name": @name,
         "current_players": @users.length,
         "max_players": @max,
-        "players": @users.map(&:name)
+        "players": @users.map(&:name),
+        "games": @games.map(&:to_hash)
       }
     end
 

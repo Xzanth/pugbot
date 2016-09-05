@@ -85,5 +85,16 @@ module PugBot
         "Just finished: #{@users.join(' ')} - started #{time} minutes ago."
       end
     end
+
+    def to_hash
+      {
+        "status": @status,
+        "users": @users.map(&:name)
+      }
+    end
+
+    def to_json(*a)
+      to_hash.to_json(*a)
+    end
   end
 end
