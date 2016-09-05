@@ -6,7 +6,7 @@ module PugBot
     use Rack::Throttle::Interval, min: 2
     use Rack::Throttle::Minute,   max: 30
 
-    get "/api/" do
+    get "/api/queue_list" do
       content_type :json
       settings.plugin.queue_list.to_json
     end
