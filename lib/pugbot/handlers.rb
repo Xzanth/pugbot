@@ -6,11 +6,15 @@ module PugBot
     # Set up variables, called when the bot first connects to irc. Start an
     # array of names to not pmsg back.
     # @return [void]
-    def setup(*)
+    def initialize(*args)
+      super
       @names = ["Q", bot.nick]
-      @channel = Channel(config[:channel])
       @queue_list = QueueList.new(self)
       @bot.pug_plugin = self
+    end
+
+    def setup(*)
+      @channel = Channel(config[:channel])
     end
 
     # Don't allow anyone else to change the channel topic, warn them with
