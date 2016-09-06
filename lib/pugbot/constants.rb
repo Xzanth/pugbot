@@ -43,6 +43,10 @@ module PugBot
     " queue.".freeze
   TS3_INFO = "ts3.playmidair.com".freeze
   VERSION_REPLY = "Currently running pugbot version: %s".freeze
+  SAVED = "Current queue list has been saved to file by %s.".freeze
+  LOADED = "%s has loaded the queue list from a file.".freeze
+  USER_NOT_FOUND = "Could not find a user with name %s.".freeze
+  NO_SAVE_FILE = "Could not load as no save file was found.".freeze
 
   FINISH_TIMEOUT = 90
   LEAVE_TIMEOUT = 120

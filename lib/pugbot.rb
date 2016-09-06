@@ -111,6 +111,16 @@ module PugBot
             description: "Operators only. Will shut down the whole bot so"\
             " please only use if bot is spamming or otherwise causing"\
             " inconvenience to the users of the channel."
+    command :save, [{ name: "FILE", format: :string, optional: false }],
+            summary: "Operators only. Save the queue list to file",
+            description: "Operators only. Save the entire list of queues to a"\
+            " file so in the case of a crash/restart everything does not have"\
+            " to be remade."
+    command :load, [{ name: "FILE", format: :string, optional: true }],
+            summary: "Operators only. Load a queue list from a file",
+            description: "Operators only. Load a file that has been saved"\
+            " earlier with !save as the current queue list. If supplied with"\
+            " no arguments load default file."
 
     # Send message to plugin channel. Quick helper method to stop send methods
     # getting too long.

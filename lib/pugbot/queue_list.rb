@@ -21,6 +21,21 @@ module PugBot
       @plugin = plugin
     end
 
+    # Clears and then populates the queue_list with data from a supplied hash.
+    # @param [Hash] hash The data to populate queue_list with
+    def from_hash(hash)
+      @queues = []
+      hash.each do |q|
+        queue = new_queue(q["queue_name"], q["max_players"])
+        q["players"].each do |p|
+          u = plugin.User(p)
+          m.reply format(USER_NOT_FOUND, p) and next unless u.is_a?(Cinch::User)
+          queue.add(u)
+          u.status = :standby
+        end
+      end
+    end
+
     # Create a new queue, make it the default if it is the only queue.
     # @param [String] name The name for this specific queue
     # @param [Integer] max The max number of players in this queue

@@ -389,6 +389,42 @@ module PugBot
     end
 
     ############################################################################
+    # @!group !save
+
+    # Save the entire list of queues to a file so in the case of a crash/restart
+    # everything does not have to be remade.
+    # @param [String] file The filename to save to
+    # @return [void]
+    def save(m, file)
+      return m.user.notice ACCESS_DENIED unless m.channel.opped?(m.user)
+      File.open(File.expand_path("#{file}.json"), "w") do |f|
+        f.write(@queue_list.to_json)
+      end
+      m.reply format(SAVED, m.user.nick)
+    end
+
+    ############################################################################
+    # @!group !load
+
+    # Load a file that has been saved earlier with !save as the current queue
+    # list. If supplied with no arguments load default file.
+    # @return [void]
+    def load(m, file)
+      file =  config[:default_file] if file.nil?
+      return m.user.notice ACCESS_DENIED unless m.channel.opped?(m.user)
+      begin
+        f = File.read(File.expand_path("#{file}.json"))
+      rescue Errno::ENOENT
+        return m.reply NO_SAVE_FILE
+      end
+      queue_list = JSON.parse(f)
+      @queue_list = QueueList.new(self)
+      @queue_list.from_hash(queue_list)
+      update_topic
+      m.reply format(LOADED, m.user.nick)
+    end
+
+    ############################################################################
     # @!group HelperFunctions
 
     # Is a user currently playing in a game?
