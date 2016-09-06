@@ -9,6 +9,7 @@ require "pugbot/handlers"
 require "pugbot/constants"
 require "pugbot/version"
 require "pugbot/cinch/user"
+require "pugbot/cinch/bot"
 require "pugbot/storage/models"
 require "json"
 
@@ -82,7 +83,8 @@ module PugBot
             " of players",
             description: "Operators only. Create a new queue with name"\
             " QUEUE_NAME that will start a game when NUM_PLAYERS number of"\
-            " users !add to it."
+            " users !add to it.",
+            op_command: true
     command :remove,
             [{ name: "NAME", format: :string, optional: false },
              { name: "QUEUE", format: :string, optional: true }],
@@ -90,37 +92,44 @@ module PugBot
             " or the specified queue",
             description: "Operators only. Remove the specified user: NAME from"\
             " all queues if supplied with no arguments otherwise from the"\
-            " queue with name or number: QUEUE."
+            " queue with name or number: QUEUE.",
+            op_command: true
     command :end, [{ name: "QUEUE", format: :string, optional: false }],
             summary: "Operators only. Delete the specified queue",
             description: "Operators only. Delete the queue with name or"\
-            " number: QUEUE."
+            " number: QUEUE.",
+            op_command: true
     command :topic, [{ name: "TEXT", format: :text, optional: true }],
             summary: "Operators only. Add information to topic",
             description: "Operators only. Adds TEXT to the end of the topic"\
             " any time the bot updates the channel topic. Only lasts until"\
-            " next bot restart. Call with no arguments to clear topic."
+            " next bot restart. Call with no arguments to clear topic.",
+            op_command: true
     command :restart, [],
             summary: "Operators only. Clear queue list and start again",
             description: "Operators only. Will clear the entire queue_list and"\
             " set all users to untracked so if there is a game that hasn't"\
             " finished properly or something and people are unable to join"\
-            " another then !restart."
+            " another then !restart.",
+            op_command: true
     command :shutdown, [],
             summary: "Operators only. Shut down the whole bot",
             description: "Operators only. Will shut down the whole bot so"\
             " please only use if bot is spamming or otherwise causing"\
-            " inconvenience to the users of the channel."
+            " inconvenience to the users of the channel.",
+            op_command: true
     command :save, [{ name: "FILE", format: :string, optional: false }],
             summary: "Operators only. Save the queue list to file",
             description: "Operators only. Save the entire list of queues to a"\
             " file so in the case of a crash/restart everything does not have"\
-            " to be remade."
+            " to be remade.",
+            op_command: true
     command :load, [{ name: "FILE", format: :string, optional: true }],
             summary: "Operators only. Load a queue list from a file",
             description: "Operators only. Load a file that has been saved"\
             " earlier with !save as the current queue list. If supplied with"\
-            " no arguments load default file."
+            " no arguments load default file.",
+            op_command: true
 
     # Send message to plugin channel. Quick helper method to stop send methods
     # getting too long.

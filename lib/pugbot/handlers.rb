@@ -10,6 +10,7 @@ module PugBot
       @names = ["Q", bot.nick]
       @channel = Channel(config[:channel])
       @queue_list = QueueList.new(self)
+      @bot.pug_plugin = self
     end
 
     # Don't allow anyone else to change the channel topic, warn them with
