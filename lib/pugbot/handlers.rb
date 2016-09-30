@@ -61,8 +61,7 @@ module PugBot
     # When a tracked user leaves the channel start a timer before they are
     # removed from queues.
     # @return [void]
-    def left_channel(m, *_args)
-      user = m.user
+    def left_channel(_m, user)
       return unless user.track
       user.timer = timer_user_leave(user)
       send format(DISCONNECTED, user.nick)
