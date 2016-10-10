@@ -68,6 +68,15 @@ module PugBot
     end
 
     ############################################################################
+    # @!group !mumble
+
+    # Inform channel of the mumble info.
+    # @return [void]
+    def mumble(m)
+      m.reply MUMBLE_INFO
+    end
+
+    ############################################################################
     # @!group !ts3
 
     # Inform channel of the ts3 info.

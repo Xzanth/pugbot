@@ -42,6 +42,7 @@ module PugBot
   DISCONNECTED_OUT = "%s has not returned and has lost their space in the"\
     " queue.".freeze
   TS3_INFO = "ts3.playmidair.com".freeze
+  MUMBLE_INFO = "xzanth.com (64738) - mumble://xzanth.com/PUGs".freeze
   VERSION_REPLY = "Currently running pugbot version: %s".freeze
   SAVED = "Current queue list has been saved to file by %s.".freeze
   LOADED = "%s has loaded the queue list from a file.".freeze
