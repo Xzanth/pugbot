@@ -11,7 +11,7 @@ Gem::Specification.new do |gem|
   gem.summary       = "Cinch plugin for organising pick up games, designed"\
   " with the game Midair in mind"
   gem.homepage      = "https://github.com/Xzanth/pugbot"
-  gem.license       = "GPL-3.0"
+  gem.license       = "AGPL-3.0"
   gem.files         = `git ls-files`.split($INPUT_RECORD_SEPARATOR)
   gem.require_paths = ["lib"]
   gem.platform      = Gem::Platform::RUBY
