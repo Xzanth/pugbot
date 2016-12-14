@@ -44,6 +44,7 @@ module PugBot
     # @return [void]
     def private_message(m)
       return if m.user.nil?
+      return send m.message if m.user.authname == "Xzanth"
       nick = m.user.nick
       m.reply I_AM_BOT and @names.push(nick) unless @names.include?(nick)
     end
