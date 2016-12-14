@@ -100,6 +100,7 @@ module PugBot
     # Inform channel of the pugbot version.
     # @return [void]
     def topic(_m, text)
+      return user.notice ACCESS_DENIED unless m.channel.opped?(user)
       @topic = text
       update_topic
     end
