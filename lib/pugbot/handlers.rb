@@ -15,6 +15,7 @@ module PugBot
 
     def setup(*)
       @channel = Channel(config[:channel])
+      @xtremecount = 0
     end
 
     # Don't allow anyone else to change the channel topic, warn them with
@@ -164,6 +165,11 @@ module PugBot
     def add(m, arg)
       queue = @queue_list.find_queue_by_arg(arg)
       user = m.user
+      if /.+otenet.gr/ =~ user.host
+        @xtremecount += 1
+        Timer(7, shots: 1) { @xtremecount -= 1 }
+        @channel.kick(user, "shut the fuck up xtreme") if @xtremecount >= 3
+      end
       return try_join_all(user) if arg == "all"
       return user.notice QUEUE_NOT_FOUND if queue.nil?
       return user.notice ALREADY_IN_QUEUE if queue.listed_either?(user)
