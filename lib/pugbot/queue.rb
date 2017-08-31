@@ -99,7 +99,8 @@ module PugBot
           user.status = :ingame
           @queue_list.remove_from_queues(user)
         end
-        text = "Game #{@name} - starting for #{ingame.join(' ')}"
+        captains = "Captains: #{ingame.shuffle.take(2).join(' vs ')}"
+        text = "Game #{@name} - starting for #{ingame.join(' ')} - #{captains}"
         @queue_list.plugin.send(text)
       end
     end

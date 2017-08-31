@@ -769,7 +769,7 @@ describe PugBot::BotPlugin do
     it "should hilight all the players in the channel" do
       @queue1.add(@user1)
       expect(@plugin.channel).to receive(:send).with(
-        "Game TestQ - starting for test1 test2"
+        "Game TestQ - starting for test1 test2 - Captains: test1 vs test2"
       )
       @queue1.add(@user2)
     end
