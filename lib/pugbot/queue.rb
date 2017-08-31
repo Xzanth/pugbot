@@ -134,11 +134,11 @@ module PugBot
     # @return [String] The status of this queue
     def print_short
       ingame = @games.select { |game| game.status == :ingame }
-      text = "#{@name} - "
+      text = "#{@name} "
       if ingame.length == 1
-        text << "IN GAME - "
+        text << "(IN GAME) "
       elsif ingame.length > 1
-        text << "#{@games.length} GAMES - "
+        text << "(#{@games.length} GAMES) "
       end
       text << "[#{@users.length}/#{@max}]"
       text
