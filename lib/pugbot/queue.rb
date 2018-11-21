@@ -99,7 +99,8 @@ module PugBot
           user.status = :ingame
           @queue_list.remove_from_queues(user)
         end
-        text = "Game #{@name} - starting for #{ingame.join(' ')}"
+        captains = "Captains: #{ingame.shuffle.take(2).join(' vs ')}"
+        text = "Game #{@name} - starting for #{ingame.join(' ')} - #{captains}"
         @queue_list.plugin.send(text)
       end
     end
@@ -134,11 +135,11 @@ module PugBot
     # @return [String] The status of this queue
     def print_short
       ingame = @games.select { |game| game.status == :ingame }
-      text = "#{@name} - "
+      text = "#{@name} "
       if ingame.length == 1
-        text << "IN GAME - "
+        text << "(IN GAME) "
       elsif ingame.length > 1
-        text << "#{@games.length} GAMES - "
+        text << "(#{@games.length} GAMES) "
       end
       text << "[#{@users.length}/#{@max}]"
       text
